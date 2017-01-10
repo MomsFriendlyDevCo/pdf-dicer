@@ -15,3 +15,13 @@ PDF-Dicer takes a single PDF file made up of multiple scanned documents. Each su
 PDF-Dicer takes this file, splits on each barcode set, validates the barcodes and outputs back into individual files.
 
 ![Output process](docs/output.png)
+
+
+Installing
+----------
+This module requires ImageMagick, GhostScript and Poppler.
+
+You can install them as follows:
+
+* **Ubuntu Linux** - `sudo apt-get install imagemagick ghostscript poppler-utils`
+* **OSX (Yosemite)** - `brew install imagemagick ghostscript poppler`
