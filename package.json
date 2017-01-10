@@ -1,0 +1,26 @@
+{
+  "name": "pdf-dicer",
+  "version": "0.0.0",
+  "description": "Split PDF files into many based on barcode separators",
+  "main": "index.js",
+  "engines": {
+    "node": "4.3.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hash-bang/pdf-dicer.git"
+  },
+  "license": "MIT",
+  "author": "Matt Carter <m@ttcarter.com>",
+  "bugs": {
+    "url": "https://github.com/hash-bang/pdf-dicer/issues"
+  },
+  "homepage": "https://github.com/hash-bang/pdf-dicer#readme",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "",
+  "dependencies": {
+    "quagga": "^0.11.5"
+  }
+}
