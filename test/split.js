@@ -1,17 +1,14 @@
 var _ = require('lodash');
 var expect = require('chai').expect;
+var mlog = require('mocha-logger');
 var pdfDicer = require('..');
 
 describe('pdfDicer.split()', function() {
 
-	var dicer;
-	before(function() {
-		dicer = new pdfDicer();
-	});
-
-	it('should accept a PDF and split it', function(next) {
+	it('should split by alternating top/bottom bacrcodes', function(next) {
 		this.timeout(60 * 1000);
 
+		var dicer = new pdfDicer();
 		var stages = [];
 		var fired = {
 			tempDir: 0,
@@ -38,9 +35,8 @@ describe('pdfDicer.split()', function() {
 					'1234567890-a',false,false,false,'1234567890-z',
 				]);
 			})
-			.split(__dirname + '/data/example-1.pdf', function(err, output) {
-
-				expect(err).to.be.not.ok;
+			.split(__dirname + '/data/example-alternating.pdf', function(err, output) {
+				if (err) return next(err);
 
 				expect(stages).to.be.deep.equal([
 					'init', 'readPDF', 'readPages', 'extracted',
