@@ -2,6 +2,7 @@ var _ = require('lodash');
 var async = require('async-chainable');
 var barcodeReader = require('quagga').default;
 var events = require('events');
+var fs = require('fs');
 var temp = require('temp');
 var pdfImage = require('pdf-image').PDFImage;
 var util = require('util');
@@ -56,6 +57,11 @@ function PDFDicer() {
 				dicer.emit('stage', 'init');
 				if (!_.isString(input)) return next('Unknown input type');
 				next();
+			})
+			// }}}
+			// Check file exists {{{
+			.then(function(next) {
+				fs.access(input, err => next(err ? 'File not found' : null));
 			})
 			// }}}
 			// Prepare (temp directory) {{{
