@@ -20,7 +20,24 @@ describe('pdfDicer.split()', function() {
 		};
 
 		dicer
-			.on('stage', stage => stages.push(stage))
+			.areas([
+				{ // Top-left quarter
+					top: "0%",
+					right: "50%",
+					left: "0%",
+					bottom: "70%",
+				},
+				{ // Bottom-right quarter
+					top: "70%",
+					right: "0%",
+					left: "50%",
+					bottom: "0%",
+				},
+			])
+			.on('stage', stage => {
+				mlog.log('stage:', stage);
+				stages.push(stage);
+			})
 			.on('tempDir', path => fired.tempDir++)
 			.on('pageConverted', path => fired.pageConverted++)
 			.on('pagesConverted', path => fired.pagesConverted++)

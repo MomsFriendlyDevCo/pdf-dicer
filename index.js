@@ -11,19 +11,45 @@ function PDFDicer() {
 	var dicer = this;
 
 	dicer._defaults = {
+		reader: {
+			numOfWorkers: 0, // Always 0 in Node backend
+			locate: true, // Search for the barcode on the page
+			inputStream: {
+				size: false, // Force full image resolution
+			},
+			decoder: {
+				readers: ['code_128_reader'],
+				multiple: false,
+			},
+		},
+		areas: [
+			{ // Top left quarter
+				top: "0%",
+				right: "50%",
+				left: "0%",
+				bottom: "50%",
+			},
+		],
 		temp: {
 			prefix: 'pdfdicer-',
 		},
-		threads: 1,
+		threads: {
+			pages: 1,
+			areas: 1,
+		},
 	};
 
 	dicer.new = ()=> new PDFDicer();
 
 	dicer.defaults = function(options) {
-		_.assign(this._defaults, options);
+		_.merge(this._defaults, options);
 		return this;
 	};
 
+	dicer.areas = function(areas) {
+		this._defaults.areas = areas;
+		return this;
+	};
 
 	/**
 	* Take an input file and split it into many PDF files based on configured options
@@ -86,7 +112,7 @@ function PDFDicer() {
 				dicer.emit('stage', 'readPDF');
 				this.pdf.getInfo()
 					.catch(e => next(e))
-					.then(data => next(null, data))
+					.then(data => next(null, data), next)
 			})
 			// }}}
 			// Convert the file into PNG images {{{
@@ -118,31 +144,28 @@ function PDFDicer() {
 			})
 			// }}}
 			// Read each page and extract a barcode if there is one {{{
-			.limit(settings.threads)
-			.forEach('pages', function(next, page, pageOffset) {
+			.limit(settings.threads.pages)
+			.forEach('pages', function(nextPage, page, pageOffset) {
 				dicer.emit('pageAnalyze', page, pageOffset)
-				barcodeReader.decodeSingle({
-					src: page.path,
-					numOfWorkers: 0, // Always 0 in Node backend
-					locate: true, // Search for the barcode on the page
-					inputStream: {
-						size: false, // Force full image resolution
-						area: {
-							top: "0%",
-							right: "50%",
-							left: "0%",
-							bottom: "60%",
-						},
-					},
-					decoder: {
-						readers: ['code_128_reader'],
-						multiple: false,
-					},
-				}, function(res) {
-					page.barcode = res && res.codeResult ? res.codeResult.code : false;
-					dicer.emit('pageAnalyzed', page, pageOffset);
-					next();
-				});
+				page.barcode = false;
+				async()
+					.limit(settings.threads.areas)
+					.forEach(settings.areas, function(nextArea, area) {
+						barcodeReader.decodeSingle(_.merge({}, settings.reader, {
+							src: page.path,
+							inputStream: {
+								area: area,
+							},
+						}), function(res) {
+							if (!page.barcode && res && res.codeResult) page.barcode = res.codeResult.code;
+							nextArea();
+						});
+					})
+					.then(function(next) {
+						dicer.emit('pageAnalyzed', page, pageOffset);
+						next();
+					})
+					.end(nextPage);
 			})
 			// }}}
 			.then(function(next) {
