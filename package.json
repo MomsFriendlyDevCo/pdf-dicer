@@ -23,11 +23,12 @@
     "async-chainable": "^2.2.3",
     "lodash": "^4.17.4",
     "pdf-image": "^1.1.0",
-    "quagga": "^0.11.5",
+    "quagga": "^0.11.6",
     "temp": "^0.8.3"
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "mocha": "^3.2.0"
+    "mocha": "^3.2.0",
+    "mocha-logger": "^1.0.5"
   }
 }
