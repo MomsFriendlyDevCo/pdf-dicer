@@ -1,4 +1,5 @@
 var _ = require('lodash');
+var path = require('path');
 var expect = require('chai').expect;
 var mlog = require('mocha-logger');
 var pdfDicer = require('..');
@@ -8,6 +9,12 @@ describe('pdfDicer.split()', function() {
 	it('should split by alternating top/bottom bacrcodes', function(next) {
 		this.timeout(60 * 1000);
 
+		var options = {
+			temp: {
+				prefix: 'pdfdicer-',
+				dir: path.join(__dirname, '/output')
+			}
+		};
 		var dicer = new pdfDicer();
 		var stages = [];
 		var fired = {

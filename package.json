@@ -1,6 +1,6 @@
 {
   "name": "pdf-dicer",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Split PDF files into many based on barcode separators",
   "main": "index.js",
   "engines": {
@@ -23,11 +23,11 @@
     "async-chainable": "^2.2.3",
     "lodash": "^4.17.4",
     "pdf-image": "^1.1.0",
-    "quagga": "^0.11.6",
+    "quagga": "^0.12.1",
     "temp": "^0.8.3"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
+    "chai": "^4.1.2",
     "mocha": "^3.2.0",
     "mocha-logger": "^1.0.5"
   }
