@@ -5,6 +5,7 @@ var events = require('events');
 var fs = require('fs');
 var temp = require('temp');
 var pdfImage = require('pdf-image').PDFImage;
+var scissors = require('scissors');
 var util = require('util');
 
 function PDFDicer() {
@@ -173,12 +174,53 @@ function PDFDicer() {
 				next();
 			})
 			// }}}
-			.forEach('pages', function(next, value, key) {
-				console.log(`[NEXT: {${next}}, VALUE: {${value}}, KEY: {${key}}]`);
+			.set('range', new Object())
+			.then(function(next) {
+				console.log('NEW STAGE LOAD RANGES');
+				var memBarcodeID = '';
+				var rangeCount = 1;
+				var index = 0;
+				for (var key in this.pages) {
+					if (this.pages.hasOwnProperty(key)) {
+						var page = this.pages[key];
+						memBarcodeID = (page.barcode === false) ? memBarcodeID : page.barcode.split('-')[0];
+
+						if (this.range[memBarcodeID] == null) {
+							this.range[memBarcodeID] = new Object();
+							this.range[memBarcodeID].barcode = new Object();
+							this.range[memBarcodeID].barcode.start = page.barcode;
+              this.range[memBarcodeID].pages = 1;
+              this.range[memBarcodeID].from = index + 1;
+            } else {
+							this.range[memBarcodeID].pages++;
+							if (page.barcode !== false)
+								this.range[memBarcodeID].barcode.end = page.barcode;
+            }
+					}
+					index++;
+				}
+				console.log('ANALYZED RESULT ->', this.range);
+				console.log('INDEX', index);
+				console.log('RANGE SIZE ->', Object.keys(this.range).length);
+				console.log('END STAGE LOAD RANGES');
 				next();
 			})
 			.then(function(next) {
-				console.log('END NEW STAGE');
+				console.log('NEW STAGE SCISSORS');
+				next();
+			})
+			.forEach('range', function(nextRange, range, rangeIndex) {
+				console.log(`[ RANGE: ${JSON.stringify(range)}, RANGEINDEX: { ${rangeIndex} }`);
+				var from = range.from;
+				var to = range.from + range.pages - 1;
+				
+				dicer.emit('split', { barcode: range.barcode, stream: scissors(input).range(from, to).pdfStream() } );
+				
+				nextRange();
+			})
+			.then(function(next) {
+				console.log('END STAGE SCISSORS');
+				
 				next();
 			})
 			.end(callback);

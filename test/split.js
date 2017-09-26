@@ -66,6 +66,10 @@ describe('pdfDicer.split()', function() {
 					'1234567890-a',false,false,false,'1234567890-z',
 				]);
 			})
+			.on('split', (data) => {
+				console.log('EVENT SPLIT', data);
+				data.pipe(fs.createWriteStream(__dirname + `/output/range.pdf`));
+			})
 			.split(__dirname + '/data/example-alternating.pdf', options, function(err, output) {
 				if (err) return next(err);
 

@@ -22,8 +22,11 @@
   "dependencies": {
     "async-chainable": "^2.2.3",
     "lodash": "^4.17.4",
+    "memory-streams": "^0.1.2",
     "pdf-image": "^1.1.0",
     "quagga": "^0.12.1",
+    "scissors": "^0.2.3",
+    "stream-buffers": "^3.0.1",
     "temp": "^0.8.3"
   },
   "devDependencies": {
