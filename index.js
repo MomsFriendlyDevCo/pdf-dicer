@@ -122,7 +122,7 @@ function PDFDicer() {
 				async()
 					.set('pdf', this.pdf)
 					.set('pages', this.pages)
-					.forEach(parseInt(this.info.Pages) - 1, function(next, pageNumber) {
+					.forEach(0, parseInt(this.info.Pages) - 1, function(next, pageNumber) {
 						this.pdf.convertPage(pageNumber)
 							.then(path => {
 								this.pages[pageNumber] = {
