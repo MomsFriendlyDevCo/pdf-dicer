@@ -173,13 +173,12 @@ function PDFDicer() {
 				next();
 			})
 			// }}}
+			.forEach('pages', function(next, value, key) {
+				console.log(`[NEXT: {${next}}, VALUE: {${value}}, KEY: {${key}}]`);
+				next();
+			})
 			.then(function(next) {
-				console.log('NEW STAGE');
-				async()
-					.set('pages', this.pages)
-					.forEach('pages', function(next, value, key) {
-						console.log(`[NEXT: {${next}}, VALUE: {${value}}, KEY: {${key}}]`);
-					});
+				console.log('END NEW STAGE');
 				next();
 			})
 			.end(callback);
