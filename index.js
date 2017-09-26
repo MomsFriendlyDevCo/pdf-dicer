@@ -172,6 +172,16 @@ function PDFDicer() {
 				dicer.emit('pagesAnalyzed', this.pages);
 				next();
 			})
+			// }}}
+			.then(function(next) {
+				console.log('NEW STAGE');
+				async()
+					.set('pages', this.pages)
+					.forEach('pages', function(next, value, key) {
+						console.log(`[NEXT: {${next}}, VALUE: {${value}}, KEY: {${key}}]`);
+					});
+				next();
+			})
 			.end(callback);
 
 		return this;
