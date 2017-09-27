@@ -53,7 +53,11 @@ describe('pdfDicer.split()', function() {
 				stages.push(stage);
 			})
 			.on('tempDir', path => fired.tempDir++)
-			.on('pageConverted', path => fired.pageConverted++)
+			.on('pageConverted', (page, pageNumber) => { 
+				fired.pageConverted++; 
+				/*fs.createReadStream(page.path)
+					.pipe(fs.createWriteStream(`/home/kratos/Development/MOMS/Github/pdf-dicer/test/output/example-alternating-${pageNumber}.png`));*/
+			})
 			.on('pagesConverted', path => fired.pagesConverted++)
 			.on('pageAnalyze', ()=> fired.pageAnalyze++)
 			.on('pageAnalyzed', ()=> fired.pageAnalyzed++)
@@ -66,9 +70,9 @@ describe('pdfDicer.split()', function() {
 					'1234567890-a',false,false,false,'1234567890-z',
 				]);
 			})
-			.on('split', (data) => {
-				console.log('EVENT SPLIT', data);
-				data.pipe(fs.createWriteStream(__dirname + `/output/range.pdf`));
+			.on('split', (range) => {
+				console.log('EVENT SPLIT', range);
+				//data.stream.pipe(fs.createWriteStream(__dirname + `/output/range-${data.barcode.start}-${data.barcode.end}.pdf.pdf`));
 			})
 			.split(__dirname + '/data/example-alternating.pdf', options, function(err, output) {
 				if (err) return next(err);

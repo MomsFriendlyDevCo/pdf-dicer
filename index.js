@@ -199,27 +199,36 @@ function PDFDicer() {
 					}
 					index++;
 				}
-				console.log('ANALYZED RESULT ->', this.range);
-				console.log('INDEX', index);
-				console.log('RANGE SIZE ->', Object.keys(this.range).length);
-				console.log('END STAGE LOAD RANGES');
+				// console.log('ANALYZED RESULT ->', this.range);
+				// console.log('INDEX', index);
+				// console.log('RANGE SIZE ->', Object.keys(this.range).length);
+				// console.log('END STAGE LOAD RANGES');
 				next();
 			})
 			.then(function(next) {
-				console.log('NEW STAGE SCISSORS');
+				dicer.emit('split', this.range);
+				next();
+			})
+			.then(function(next) {
+				// console.log('NEW STAGE SCISSORS');
 				next();
 			})
 			.forEach('range', function(nextRange, range, rangeIndex) {
-				console.log(`[ RANGE: ${JSON.stringify(range)}, RANGEINDEX: { ${rangeIndex} }`);
+				// console.log(`[ RANGE: ${JSON.stringify(range)}, RANGEINDEX: { ${rangeIndex} }`);
 				var from = range.from;
 				var to = range.from + range.pages - 1;
+
+				// console.log(`Get pdf from ${input} and split to range ${from} to ${to}.`);
 				
-				dicer.emit('split', { barcode: range.barcode, stream: scissors(input).range(from, to).pdfStream() } );
+				// scissors(input).range(from, to).pdfStream()
+				//	.pipe(fs.createWriteStream(`/home/kratos/Development/MOMS/Github/pdf-dicer/test/output/range-${range.barcode.start}-${range.barcode.end}.pdf`))
+				
+				dicer.emit('split', range, scissors(input).range(from, to).pdfStream() );
 				
 				nextRange();
 			})
 			.then(function(next) {
-				console.log('END STAGE SCISSORS');
+				// console.log('END STAGE SCISSORS');
 				
 				next();
 			})
