@@ -17,10 +17,12 @@
   },
   "homepage": "https://github.com/hash-bang/pdf-dicer#readme",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "example-split": "node ./example/split.js"
   },
   "dependencies": {
     "async-chainable": "^2.2.3",
+    "fs-extra": "^4.0.2",
     "lodash": "^4.17.4",
     "pdf-image": "^1.1.0",
     "quagga": "^0.12.1",

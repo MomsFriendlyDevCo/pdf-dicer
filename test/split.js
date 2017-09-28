@@ -1,16 +1,28 @@
 var _ = require('lodash');
-var path = require('path');
-var fs = require('fs');
+var fs = require('fs-extra')
 var expect = require('chai').expect;
 var mlog = require('mocha-logger');
 var pdfDicer = require('..');
 
+var outputPath = '';
+
 describe('pdfDicer.split()', function() {
 
-	it('should split by alternating top/bottom bacrcodes', function(next) {
+	beforeEach(function() {
+		outputPath = `${__dirname}/output`;
+		// Clean and prepare work directory
+		if (fs.existsSync(outputPath)) {
+			fs.removeSync(outputPath);
+		}
+		if (!fs.existsSync(outputPath)) {
+			fs.mkdirSync(outputPath);
+		}
+	});
+
+	it('should split by alternating top/bottom barcodes', function(next) {
 		this.timeout(60 * 1000);
 
-		var outputPath = path.join(__dirname, '/output');
+		outputPath = `${__dirname}/output/split`;
 		if (!fs.existsSync(outputPath)) {
 			fs.mkdirSync(outputPath);
 		}
@@ -53,11 +65,7 @@ describe('pdfDicer.split()', function() {
 				stages.push(stage);
 			})
 			.on('tempDir', path => fired.tempDir++)
-			.on('pageConverted', (page, pageNumber) => { 
-				fired.pageConverted++; 
-				/*fs.createReadStream(page.path)
-					.pipe(fs.createWriteStream(`/home/kratos/Development/MOMS/Github/pdf-dicer/test/output/example-alternating-${pageNumber}.png`));*/
-			})
+			.on('pageConverted', (page, pageNumber) => fired.pageConverted++)
 			.on('pagesConverted', path => fired.pagesConverted++)
 			.on('pageAnalyze', ()=> fired.pageAnalyze++)
 			.on('pageAnalyzed', ()=> fired.pageAnalyzed++)
@@ -70,15 +78,68 @@ describe('pdfDicer.split()', function() {
 					'1234567890-a',false,false,false,'1234567890-z',
 				]);
 			})
-			.on('split', (range) => {
-				console.log('EVENT SPLIT', range);
-				//data.stream.pipe(fs.createWriteStream(__dirname + `/output/range-${data.barcode.start}-${data.barcode.end}.pdf.pdf`));
+			.on('rangeExtracted', (range) => {
+				
+				expect(range).to.be.deep.equal({
+					101: {
+						barcode: {
+							start: "101-a",
+							end: "101-z"
+						},
+						pages: 2,
+						from: 1
+					},
+					250: {
+						barcode: {
+							start: "250-a",
+							end: "250-z"
+						},
+						pages: 4,
+						from: 3
+					},
+					666: {
+						barcode: {
+							start: "666-a",
+							end: "666-z"
+						},
+						pages: 3,
+						from: 7
+					},
+					1234567890: {
+						barcode: {
+							start: "1234567890-a",
+							end: "1234567890-z"
+						},
+						pages: 5,
+						from:10
+					}
+				});
+
 			})
-			.split(__dirname + '/data/example-alternating.pdf', options, function(err, output) {
+			.on('split', (data, stream) => {
+				stream.pipe(fs.createWriteStream(`${outputPath}/range-${data.barcode.start}-${data.barcode.end}.pdf`));
+			})
+			.on('splitted', () => {
+				var fileCount = 0;
+				var fileNames = [
+					'range-101-a-101-z.pdf',
+					'range-250-a-250-z.pdf',
+					'range-666-a-666-z.pdf',
+					'range-1234567890-a-1234567890-z.pdf'
+				];
+				fs.readdirSync(outputPath).forEach(file => {
+					if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
+						fileCount++;
+					}
+				});
+				expect(fileCount).to.be.equal(4);
+			})
+			.split(`${__dirname}/data/example-alternating.pdf`, options, function(err, output) {
 				if (err) return next(err);
 
 				expect(stages).to.be.deep.equal([
-					'init', 'readPDF', 'readPages', 'extracted',
+					'init', 'readPDF', 'readPages', 'extracted', 'loadRange', 
+					'splitPDFscissors', 'splitPDFscissors', 'splitPDFscissors', 'splitPDFscissors'
 				]);
 
 				expect(fired).to.be.deep.equal({

@@ -174,9 +174,10 @@ function PDFDicer() {
 				next();
 			})
 			// }}}
+			// Build range for split pdf 
 			.set('range', new Object())
 			.then(function(next) {
-				console.log('NEW STAGE LOAD RANGES');
+				dicer.emit('stage', 'loadRange');
 				var memBarcodeID = '';
 				var rangeCount = 1;
 				var index = 0;
@@ -199,37 +200,27 @@ function PDFDicer() {
 					}
 					index++;
 				}
-				// console.log('ANALYZED RESULT ->', this.range);
-				// console.log('INDEX', index);
-				// console.log('RANGE SIZE ->', Object.keys(this.range).length);
-				// console.log('END STAGE LOAD RANGES');
 				next();
 			})
+			// }}}
+			// Emits the data with the range for split pdf
 			.then(function(next) {
-				dicer.emit('split', this.range);
+				dicer.emit('rangeExtracted', this.range);
 				next();
 			})
-			.then(function(next) {
-				// console.log('NEW STAGE SCISSORS');
-				next();
-			})
+			// }}}
+			// Extract pdf into ranges
 			.forEach('range', function(nextRange, range, rangeIndex) {
-				// console.log(`[ RANGE: ${JSON.stringify(range)}, RANGEINDEX: { ${rangeIndex} }`);
+				dicer.emit('stage', 'splitPDFscissors');
 				var from = range.from;
 				var to = range.from + range.pages - 1;
 
-				// console.log(`Get pdf from ${input} and split to range ${from} to ${to}.`);
-				
-				// scissors(input).range(from, to).pdfStream()
-				//	.pipe(fs.createWriteStream(`/home/kratos/Development/MOMS/Github/pdf-dicer/test/output/range-${range.barcode.start}-${range.barcode.end}.pdf`))
-				
-				dicer.emit('split', range, scissors(input).range(from, to).pdfStream() );
+				dicer.emit('split', range, scissors(input).range(from, to).pdfStream());
 				
 				nextRange();
 			})
 			.then(function(next) {
-				// console.log('END STAGE SCISSORS');
-				
+				dicer.emit('splitted', true);
 				next();
 			})
 			.end(callback);
