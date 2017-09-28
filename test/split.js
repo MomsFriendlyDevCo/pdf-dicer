@@ -6,26 +6,125 @@ var pdfDicer = require('..');
 
 var outputPath = '';
 
+/**
+ * Creates path to use in the test.
+ * @param {string} directory Path to use in tests.
+ */
+function createTestDirectory(directory) {
+	if (!fs.existsSync(directory)) {
+		fs.mkdirSync(directory);
+	}
+	return directory;
+}
+
 describe('pdfDicer.split()', function() {
 
-	beforeEach(function() {
+	before(function() {
 		outputPath = `${__dirname}/output`;
 		// Clean and prepare work directory
 		if (fs.existsSync(outputPath)) {
 			fs.removeSync(outputPath);
 		}
-		if (!fs.existsSync(outputPath)) {
-			fs.mkdirSync(outputPath);
-		}
+		createTestDirectory(outputPath);
+	});
+
+	it('should split by wrong barcode start in a range', function(next) {
+
+		this.timeout(60 * 1000);
+		
+		outputPath = createTestDirectory(`${__dirname}/output/wrong-barcode`);
+
+		var options = {
+			temp: {
+				prefix: 'pdfdicer-',
+				dir: outputPath
+			}
+		};
+
+		var dicer = new pdfDicer();
+		var stages = [];
+		dicer
+			.areas([
+				{ // Top-left quarter
+					top: "0%",
+					right: "50%",
+					left: "0%",
+					bottom: "70%",
+				},
+				{ // Bottom-right quarter
+					top: "70%",
+					right: "0%",
+					left: "50%",
+					bottom: "0%",
+				},
+			])
+			.on('stage', stage => {
+				mlog.log('stage:', stage);
+				stages.push(stage);
+			})
+			.on('rangeExtracted', (range) => {
+				
+				var errors = [];
+
+				// You can use this stage to check if the document is correct
+				for (var key in range) {
+					if (range.hasOwnProperty(key)) {
+						var element = range[key];
+						if (element.barcode.start == null || element.barcode.end == null) {
+							errors.push(`Error with element key ${(element.barcode.start || element.barcode.end)}. Wrong range start or end. Check the resultant pdf.`);
+						}
+					}
+				}	
+
+				expect(errors).to.have.lengthOf(1);
+
+				expect(range).to.be.deep.equal({
+					101: {
+						barcode: {
+							start: "101-z",
+						},
+						pages: 1,
+						from: 1
+					},
+					250: {
+						barcode: {
+							start: "250-a",
+							end: "250-z"
+						},
+						pages: 4,
+						from: 2
+					}
+				});
+			})
+			.on('split', (data, stream) => {
+				stream.pipe(fs.createWriteStream(`${outputPath}/range-${data.barcode.start}-${data.barcode.end}.pdf`));
+			})
+			.on('splitted', () => {
+				var fileCount = 0;
+				var fileNames = [
+					'range-101-z-undefined.pdf',
+					'range-250-a-250-z.pdf'
+				];
+				fs.readdirSync(outputPath).forEach(file => {
+					if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
+						fileCount++;
+					}
+				});
+				expect(fileCount).to.be.equal(2);
+
+			})
+			.split(`${__dirname}/data/example-wrong-barcode-start.pdf`, options, function(err, output) {
+				if (err) return next(err);
+
+				next();
+			});
+
 	});
 
 	it('should split by alternating top/bottom barcodes', function(next) {
 		this.timeout(60 * 1000);
 
-		outputPath = `${__dirname}/output/split`;
-		if (!fs.existsSync(outputPath)) {
-			fs.mkdirSync(outputPath);
-		}
+		outputPath = createTestDirectory(`${__dirname}/output/alternating`);
 
 		var options = {
 			temp: {
@@ -139,7 +238,7 @@ describe('pdfDicer.split()', function() {
 
 				expect(stages).to.be.deep.equal([
 					'init', 'readPDF', 'readPages', 'extracted', 'loadRange', 
-					'splitPDFscissors', 'splitPDFscissors', 'splitPDFscissors', 'splitPDFscissors'
+					'splitPDFWithScissors', 'splitPDFWithScissors', 'splitPDFWithScissors', 'splitPDFWithScissors'
 				]);
 
 				expect(fired).to.be.deep.equal({

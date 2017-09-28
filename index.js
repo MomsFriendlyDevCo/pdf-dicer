@@ -8,6 +8,9 @@ var pdfImage = require('pdf-image').PDFImage;
 var scissors = require('scissors');
 var util = require('util');
 
+/**
+ * PDFDicer functions that gives the all functionality.
+ */
 function PDFDicer() {
 	var dicer = this;
 
@@ -40,7 +43,7 @@ function PDFDicer() {
 		},
 	};
 
-	dicer.new = ()=> new PDFDicer();
+	dicer.new = () => new PDFDicer();
 
 	dicer.defaults = function(options) {
 		_.merge(this._defaults, options);
@@ -53,19 +56,23 @@ function PDFDicer() {
 	};
 
 	/**
-	* Take an input file and split it into many PDF files based on configured options
-	* @emits stage Fired at each stage of the process. ENUM: 'init', 'readPDF', 'readPages', 'extracted'
-	* @emits tempDir The temp dir used for storage
-	* @emits pageConverted  Fired with each page and pageOffset extracted as they are extracted
-	* @emits pagesConverted Fired with an array of all extracted page collection
-	* @emits pageAnalyze Fired before each page gets analyzed with the page object and offset
-	* @emits pageAnalyzed Fired after each page has been analyzed with the page object and offset
-	* @emits pagesAnalyzed Fired after all pages have been analyzed with the page collection
-	* @param {string} input The input path to process (ends in .pdf usually)
-	* @param {Object} [options] Optional options which override the defaults
-	* @param {function} callback Callback function to fire on completion or error
-	* @return {PDFDicer} This chainable object
-	*/
+	 * Take an input file and split it into many PDF files based on configured options
+	 * @emits stage Fired at each stage of the process. ENUM: 'init', 'readPDF', 'readPages', 'extracted', 'loadRange', 'splitPDFWithScissors'
+	 * 							'splitPDFWithScissors' stage is thrown as many times as is needed.
+	 * @emits tempDir The temp dir used for storage
+	 * @emits pageConverted  Fired with each page and pageOffset extracted as they are extracted
+	 * @emits pagesConverted Fired with an array of all extracted page collection
+	 * @emits pageAnalyze Fired before each page gets analyzed with the page object and offset
+	 * @emits pageAnalyzed Fired after each page has been analyzed with the page object and offset
+	 * @emits pagesAnalyzed Fired after all pages have been analyzed with the page collection
+	 * @emits rangeExtracted Fired after the splitted range has been calculated from the original input pdf
+	 * @emits split Fired after each pdf has been separated in the range and it gives you the pdf resultant
+	 * @emits splitted Fired after pdf have been separated in the range
+	 * @param {string} input The input path to process (ends in .pdf usually)
+	 * @param {Object} [options] Optional options which override the defaults
+	 * @param {function} callback Callback function to fire on completion or error
+	 * @return {PDFDicer} This chainable object
+	 */
 	dicer.split = function(input, options, callback) {
 		// Argument mangling {{{
 		if (_.isFunction(options)) { // input, options
@@ -174,7 +181,7 @@ function PDFDicer() {
 				next();
 			})
 			// }}}
-			// Build range for split pdf 
+			// Build range to split the pdf 
 			.set('range', new Object())
 			.then(function(next) {
 				dicer.emit('stage', 'loadRange');
@@ -199,19 +206,20 @@ function PDFDicer() {
             }
 					}
 					index++;
-				}
+				}	
+
 				next();
 			})
 			// }}}
-			// Emits the data with the range for split pdf
+			// Emits the data with the range to split the pdf
 			.then(function(next) {
 				dicer.emit('rangeExtracted', this.range);
 				next();
 			})
 			// }}}
-			// Extract pdf into ranges
+			// Gives the resultant splitted pdfs
 			.forEach('range', function(nextRange, range, rangeIndex) {
-				dicer.emit('stage', 'splitPDFscissors');
+				dicer.emit('stage', 'splitPDFWithScissors');
 				var from = range.from;
 				var to = range.from + range.pages - 1;
 
@@ -219,6 +227,8 @@ function PDFDicer() {
 				
 				nextRange();
 			})
+			// }}}
+			// Emits the end signal for the functionality
 			.then(function(next) {
 				dicer.emit('splitted', true);
 				next();
