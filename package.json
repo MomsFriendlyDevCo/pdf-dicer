@@ -18,7 +18,9 @@
   "homepage": "https://github.com/hash-bang/pdf-dicer#readme",
   "scripts": {
     "test": "mocha",
-    "example-split": "node ./example/split.js"
+    "example-split": "node ./example/split.js",
+    "playground": "node ./playground/playground.js",
+    "quagga-demo": "./node_modules/http-server/bin/http-server ./playground/quagga-demo & node ./playground/quagga-demo/open.js"
   },
   "dependencies": {
     "async-chainable": "^2.2.3",
@@ -30,8 +32,14 @@
     "temp": "^0.8.3"
   },
   "devDependencies": {
+    "bwip-js": "^1.6.0",
     "chai": "^4.1.2",
+    "http-server": "^0.10.0",
     "mocha": "^3.2.0",
-    "mocha-logger": "^1.0.5"
+    "mocha-logger": "^1.0.5",
+    "openurl": "^1.1.1",
+    "pdf-merge": "^1.0.2",
+    "pdfkit": "^0.8.3",
+    "uid": "0.0.2"
   }
 }

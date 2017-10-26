@@ -17,7 +17,7 @@ function PDFDicer() {
 	dicer._defaults = {
 		reader: {
 			numOfWorkers: 0, // Always 0 in Node backend
-			locate: true, // Search for the barcode on the page
+			locate: false, // We have to indicate the location of the barcode
 			inputStream: {
 				size: false, // Force full image resolution
 			},
@@ -26,14 +26,6 @@ function PDFDicer() {
 				multiple: false,
 			},
 		},
-		areas: [
-			{ // Top left quarter
-				top: "0%",
-				right: "50%",
-				left: "0%",
-				bottom: "50%",
-			},
-		],
 		temp: {
 			prefix: 'pdfdicer-',
 		},
@@ -84,6 +76,7 @@ function PDFDicer() {
 		// }}}
 
 		var settings = _.defaults({}, options, this._defaults);
+		console.log('Settings ->', JSON.stringify(settings, null, 2));
 
 		async()
 			// Sanity checks {{{
@@ -111,6 +104,8 @@ function PDFDicer() {
 					convertOptions: {
 						'-quality': 100,
 						'-density': 150,
+						'-background': 'white',
+						'-alpha': 'remove'
 					},
 				}));
 			})

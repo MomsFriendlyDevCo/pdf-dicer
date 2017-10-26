@@ -20,6 +20,12 @@ if (!fs.existsSync(outputPath)) {
 
 dicer
   .areas([
+    { // Top center area
+      top: "3%",
+      right: "2%",
+      left: "2%",
+      bottom: "87",
+    },
     { // Top-left quarter
       top: "0%",
       right: "50%",
