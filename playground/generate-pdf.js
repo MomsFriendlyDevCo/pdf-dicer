@@ -3,9 +3,11 @@ var fs = require('fs');
 var uid = require('uid');
 var bwipjs = require('bwip-js');
 var PDFDocument = require('pdfkit');
+var Promise = require("bluebird");
 
 exports.generate = function(defaultPages, fileName, addEndBarcode) {
 
+  var PNG;
   var doc = new PDFDocument({
     autoFirstPage: false,
     bufferPages: true
@@ -15,10 +17,15 @@ exports.generate = function(defaultPages, fileName, addEndBarcode) {
 
     var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam in suscipit purus. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Vivamus nec hendrerit felis. Morbi aliquam facilisis risus eu lacinia. Sed eu leo in turpis fringilla hendrerit. Ut nec accumsan nisl. Suspendisse rhoncus nisl posuere tortor tempus et dapibus elit porta. Cras leo neque, elementum a rhoncus ut, vestibulum non nibh. Phasellus pretium justo turpis. Etiam vulputate, odio vitae tincidunt ultricies, eros odio dapibus nisi, ut tincidunt lacus arcu eu elit. Aenean velit erat, vehicula eget lacinia ut, dignissim non tellus. Aliquam nec lacus mi, sed vestibulum nunc. Suspendisse potenti. Curabitur vitae sem turpis. Vestibulum sed neque eget dolor dapibus porttitor at sit amet sem. Fusce a turpis lorem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae;\nMauris at ante tellus. Vestibulum a metus lectus. Praesent tempor purus a lacus blandit eget gravida ante hendrerit. Cras et eros metus. Sed commodo malesuada eros, vitae interdum augue semper quis. Fusce id magna nunc. Curabitur sollicitudin placerat semper. Cras et mi neque, a dignissim risus. Nulla venenatis porta lacus, vel rhoncus lectus tempor vitae. Duis sagittis venenatis rutrum. Curabitur tempor massa tortor.';
     
-    function getBarcode() {
-      return new Promise(function (resolve, reject) {
-        var url = `http://localhost/#/forms/filings/${uid(20)}`;
-    
+    console.log('GENERATE -> ', defaultPages, fileName, addEndBarcode);
+
+    async()
+      .then((next) => {
+        console.log('New barcode generation start...');
+        var url = `http://localhost/#/forms/filings/${uid(15)}`;
+        var id = url.substring(url.lastIndexOf('/') + 1,url.length);
+        fileName = `${id}-${fileName}`;
+
         bwipjs.toBuffer({
           bcid:        'code128',       // Barcode type
           text:        url,             // Text to encode
@@ -28,26 +35,17 @@ exports.generate = function(defaultPages, fileName, addEndBarcode) {
           textxalign:  'center',        // Always good to set this
         }, function (err, png) {
           if (err) {
-            reject(err);
+            console.error(err);
           } else {
-            resolve(png);
+            PNG = png;
+            console.log('...new barcode generation end.');
+            next();
           }
         });
-    
-      });
-    };
-  
-    console.log('GENERATE -> ', defaultPages, fileName, addEndBarcode);
-    async()
-      .then('png', (next) => {
-        getBarcode()
-          .then((png) => {
-            this.png = png;
-            next();
-          });
+        
       })
       .then((next) => {
-        console.log(`Barcode generated ${this.png != null}`);
+        console.log(`Barcode generated ${PNG != null}`);
         next();
       })
       .then((next) => {
@@ -102,13 +100,14 @@ exports.generate = function(defaultPages, fileName, addEndBarcode) {
           doc.switchToPage(i);
     
           if (i === 0) {
-            doc.image(this.png, 50, 40, {
+            doc.image(PNG, 50, 40, {
+              height: 30,
               width: 500,
               align: 'center',
               valign: 'center'
             });
           } else if (i === range.count - 1 && addEndBarcode) {
-            doc.image(this.png, 50, 40, {
+            doc.image(PNG, 50, 40, {
               width: 500,
               align: 'center',
               valign: 'center'
@@ -125,6 +124,7 @@ exports.generate = function(defaultPages, fileName, addEndBarcode) {
         next();
       })
       .end(() => {
+        PNG = null;
         doc.pipe(fs.createWriteStream(`${__dirname}/data/${fileName}.pdf`));
         
         // Close creation

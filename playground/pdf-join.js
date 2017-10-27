@@ -1,12 +1,5 @@
-const PDFMerge = require('pdf-merge');
-
-/*const files = [
-	'./example/data/playground-1.pdf',
-	'./example/data/playground-2.pdf',
-];*/
-
-//Save as new file
-//PDFMerge(files, { output: './example/data/playground-merged.pdf' });
+var PDFMerge = require('pdf-merge');
+var Promise = require("bluebird");
 
 exports.merge = function(files, outputFileName) {
 
