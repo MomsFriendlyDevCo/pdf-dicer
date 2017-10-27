@@ -81,6 +81,7 @@ describe('pdfDicer.split()', function() {
 				expect(range).to.be.deep.equal({
 					101: {
 						barcode: {
+							id: "101-z",
 							start: "101-z",
 						},
 						pages: 1,
@@ -88,6 +89,7 @@ describe('pdfDicer.split()', function() {
 					},
 					250: {
 						barcode: {
+							id: "250-a",
 							start: "250-a",
 							end: "250-z"
 						},
@@ -182,6 +184,7 @@ describe('pdfDicer.split()', function() {
 				expect(range).to.be.deep.equal({
 					101: {
 						barcode: {
+							id: "101-a",
 							start: "101-a",
 							end: "101-z"
 						},
@@ -190,6 +193,7 @@ describe('pdfDicer.split()', function() {
 					},
 					250: {
 						barcode: {
+							id: "250-a",
 							start: "250-a",
 							end: "250-z"
 						},
@@ -198,6 +202,7 @@ describe('pdfDicer.split()', function() {
 					},
 					666: {
 						barcode: {
+							id: "666-a",
 							start: "666-a",
 							end: "666-z"
 						},
@@ -206,6 +211,7 @@ describe('pdfDicer.split()', function() {
 					},
 					1234567890: {
 						barcode: {
+							id: "1234567890-a",
 							start: "1234567890-a",
 							end: "1234567890-z"
 						},
