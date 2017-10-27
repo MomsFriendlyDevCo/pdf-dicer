@@ -76,7 +76,6 @@ function PDFDicer() {
 		// }}}
 
 		var settings = _.defaults({}, options, this._defaults);
-		console.log('Settings ->', JSON.stringify(settings, null, 2));
 
 		async()
 			// Sanity checks {{{
@@ -97,6 +96,7 @@ function PDFDicer() {
 			})
 			// }}}
 			// Build the PDF processing instance {{{
+			// More information about image processing on https://www.imagemagick.org/script/command-line-processing.php#option
 			.then('pdf', function(next) {
 				dicer.emit('tempDir', this.tempDir);
 				next(null, new pdfImage(input, {

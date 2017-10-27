@@ -27,11 +27,10 @@ var pdfToSplit = [
   './example/data/example-alternating.pdf',
 ];
 var selection = 4;
-var documents = 0;
 
 dicer
   .areas([ 
-    // Top center area 
+    // Top-center area 
     { top: "3%", right: "2%", left: "2%", bottom: "87" },
     // Top-left quarter  
     { top: "0%", right: "50%", left: "0%", bottom: "70%" },
@@ -50,7 +49,6 @@ dicer
     var outputFile = `${outputPath}/document-${data.barcode.id}.pdf`;
     console.log(`PDF range -> ${JSON.stringify(data)} into ${outputFile}`);
     stream.pipe(fs.createWriteStream(outputFile));
-    documents++;
   })
   .split(pdfToSplit[selection], options, function(err, output) {
     if (err) console.log('Error when split pdf:', err);
