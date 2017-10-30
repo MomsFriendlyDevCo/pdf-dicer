@@ -184,26 +184,31 @@ function PDFDicer() {
 				var memBarcodeID = '';
 				var rangeCount = 1;
 				var index = 0;
-				for (var key in this.pages) {
-					if (this.pages.hasOwnProperty(key)) {
-						var page = this.pages[key];
-						memBarcodeID = (page.barcode === false) ? memBarcodeID : page.barcode.split('-')[0];
-
-						if (this.range[memBarcodeID] == null) {
-							this.range[memBarcodeID] = new Object();
-							this.range[memBarcodeID].barcode = new Object();
-							this.range[memBarcodeID].barcode.id = page.barcode.substring(page.barcode.lastIndexOf("/") + 1, page.barcode.length);
-							this.range[memBarcodeID].barcode.start = page.barcode;
-              this.range[memBarcodeID].pages = 1;
-              this.range[memBarcodeID].from = index + 1;
-            } else {
-							this.range[memBarcodeID].pages++;
-							if (page.barcode !== false)
-								this.range[memBarcodeID].barcode.end = page.barcode;
-            }
+				
+				try {
+					for (var key in this.pages) {
+						if (this.pages.hasOwnProperty(key)) {
+							var page = this.pages[key];
+							memBarcodeID = (page.barcode === false) ? memBarcodeID : page.barcode.split('-')[0];
+	
+							if (this.range[memBarcodeID] == null) {
+								this.range[memBarcodeID] = new Object();
+								this.range[memBarcodeID].barcode = new Object();
+								this.range[memBarcodeID].barcode.id = page.barcode.substring(page.barcode.lastIndexOf("/") + 1, page.barcode.length);
+								this.range[memBarcodeID].barcode.start = page.barcode;
+								this.range[memBarcodeID].pages = 1;
+								this.range[memBarcodeID].from = index + 1;
+							} else {
+								this.range[memBarcodeID].pages++;
+								if (page.barcode !== false)
+									this.range[memBarcodeID].barcode.end = page.barcode;
+							}
+						}
+						index++;
 					}
-					index++;
-				}	
+				} catch (error) {
+					next(error);
+				}
 
 				next();
 			})
