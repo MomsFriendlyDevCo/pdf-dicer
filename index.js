@@ -207,7 +207,7 @@ function PDFDicer() {
 						index++;
 					}
 				} catch (error) {
-					next(error);
+					return next(error);
 				}
 
 				next();
