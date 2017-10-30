@@ -171,12 +171,13 @@ function PDFDicer() {
 					.end(nextPage);
 			})
 			// }}}
+			// Post pages analyzed emitters {{{
 			.then(function(next) {
 				dicer.emit('pagesAnalyzed', this.pages);
 				next();
 			})
 			// }}}
-			// Build range to split the pdf 
+			// Build range to split the pdf {{{
 			.set('range', new Object())
 			.then(function(next) {
 				dicer.emit('stage', 'loadRange');
@@ -207,13 +208,13 @@ function PDFDicer() {
 				next();
 			})
 			// }}}
-			// Emits the data with the range to split the pdf
+			// Emits the data with the range to split the pdf {{{
 			.then(function(next) {
 				dicer.emit('rangeExtracted', this.range);
 				next();
 			})
 			// }}}
-			// Gives the resultant splitted pdfs
+			// Gives the resultant split pdfs {{{
 			.forEach('range', function(nextRange, range, rangeIndex) {
 				dicer.emit('stage', 'splitPDFWithScissors');
 				var from = range.from;
@@ -224,11 +225,12 @@ function PDFDicer() {
 				nextRange();
 			})
 			// }}}
-			// Emits the end signal for the functionality
+			// Emits the end signal for the functionality {{{
 			.then(function(next) {
 				dicer.emit('splitted', true);
 				next();
 			})
+			// }}}
 			.end(callback);
 
 		return this;

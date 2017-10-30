@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/hash-bang/pdf-dicer#readme",
   "scripts": {
-    "test": "mocha",
+    "test": "FORCE_COLOR=t tape ./test/**/*.test.js | tap-diff",
     "example-split": "node ./example/split.js",
     "playground:generate": "GENERATE=true node ./playground/playground.js",
     "playground:join": "GENERATE=false node ./playground/playground.js",
@@ -35,13 +35,13 @@
   "devDependencies": {
     "bluebird": "^3.5.1",
     "bwip-js": "^1.6.0",
-    "chai": "^4.1.2",
+    "debug": "^3.1.0",
     "http-server": "^0.10.0",
-    "mocha": "^3.2.0",
-    "mocha-logger": "^1.0.5",
     "openurl": "^1.1.1",
     "pdf-merge": "^1.0.2",
     "pdfkit": "^0.8.3",
+    "tap-diff": "^0.1.1",
+    "tape": "^4.8.0",
     "uid": "0.0.2"
   }
 }
