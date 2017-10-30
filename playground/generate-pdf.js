@@ -29,8 +29,8 @@ exports.generate = function(defaultPages, fileName, addEndBarcode) {
         bwipjs.toBuffer({
           bcid:        'code128',       // Barcode type
           text:        url,             // Text to encode
-          scaleX:      2,               // 3x scaling factor
-          scaleY:      1,               // Bar height, in millimeters
+          scaleX:      2,               // 2x scaling factor
+          scaleY:      1,               // 1y scaling factor
           includetext: false,           // Show human-readable text
           textxalign:  'center',        // Always good to set this
         }, function (err, png) {
@@ -38,7 +38,6 @@ exports.generate = function(defaultPages, fileName, addEndBarcode) {
             console.error(err);
           } else {
             PNG = png;
-            console.log('...new barcode generation end.');
             next();
           }
         });

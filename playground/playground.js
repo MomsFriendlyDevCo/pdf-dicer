@@ -60,6 +60,7 @@ if (process.env.GENERATE ? process.env.GENERATE === 'true' : false) {
   generatedFiles = [ './playground/data/f0tsvkmfel1f87c-gen-one-page-ok.pdf',
   './playground/data/hstitdwbvnh76xq-gen-three-pages-ko.pdf',
   './playground/data/ga81ppxnfe86qyu-gen-five-pages-ok.pdf' ];
+  
   async()
     .set('joinFiles', mergePdfs)
     .forEach('joinFiles', function(nextFile, file, fileIndex) {
