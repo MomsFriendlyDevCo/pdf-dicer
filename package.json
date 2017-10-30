@@ -1,6 +1,6 @@
 {
   "name": "pdf-dicer",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Split PDF files into many based on barcode separators",
   "main": "index.js",
   "engines": {
