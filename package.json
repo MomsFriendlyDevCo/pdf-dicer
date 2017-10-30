@@ -18,10 +18,10 @@
   "homepage": "https://github.com/hash-bang/pdf-dicer#readme",
   "scripts": {
     "test": "FORCE_COLOR=t tape ./test/**/*.test.js | tap-diff",
-    "example-split": "node ./example/split.js",
+    "split:example": "node ./playground/example/split.js",
     "playground:generate": "GENERATE=true node ./playground/playground.js",
     "playground:join": "GENERATE=false node ./playground/playground.js",
-    "quagga-demo": "./node_modules/http-server/bin/http-server ./playground/quagga-demo & node ./playground/quagga-demo/open.js"
+    "quagga:demo": "./node_modules/http-server/bin/http-server ./playground/quagga-demo & node ./playground/quagga-demo/open.js"
   },
   "dependencies": {
     "async-chainable": "^2.2.3",

@@ -1,5 +1,5 @@
 var fs = require('fs-extra')
-var pdfDicer = require('../index');
+var pdfDicer = require('../../index');
 
 var dicer = new pdfDicer();
 var options = {
@@ -24,7 +24,7 @@ var pdfToSplit = [
   './playground/data/ga81ppxnfe86qyu-gen-five-pages-ok.pdf',
   './playground/data/join-f0tsvkmfel1f87c_ga81ppxnfe86qyu.pdf',
   './playground/data/join-hstitdwbvnh76xq_ga81ppxnfe86qyu.pdf',
-  './example/data/example-alternating.pdf',
+  './playground/example/data/example-alternating.pdf',
 ];
 var selection = 4;
 
