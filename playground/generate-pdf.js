@@ -4,6 +4,7 @@ var uid = require('uid');
 var bwipjs = require('bwip-js');
 var PDFDocument = require('pdfkit');
 var Promise = require("bluebird");
+var debug = require('debug')('generate-pdf');
 
 exports.generate = function(defaultPages, fileName, addEndBarcode) {
 
@@ -17,11 +18,11 @@ exports.generate = function(defaultPages, fileName, addEndBarcode) {
 
     var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam in suscipit purus. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Vivamus nec hendrerit felis. Morbi aliquam facilisis risus eu lacinia. Sed eu leo in turpis fringilla hendrerit. Ut nec accumsan nisl. Suspendisse rhoncus nisl posuere tortor tempus et dapibus elit porta. Cras leo neque, elementum a rhoncus ut, vestibulum non nibh. Phasellus pretium justo turpis. Etiam vulputate, odio vitae tincidunt ultricies, eros odio dapibus nisi, ut tincidunt lacus arcu eu elit. Aenean velit erat, vehicula eget lacinia ut, dignissim non tellus. Aliquam nec lacus mi, sed vestibulum nunc. Suspendisse potenti. Curabitur vitae sem turpis. Vestibulum sed neque eget dolor dapibus porttitor at sit amet sem. Fusce a turpis lorem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae;\nMauris at ante tellus. Vestibulum a metus lectus. Praesent tempor purus a lacus blandit eget gravida ante hendrerit. Cras et eros metus. Sed commodo malesuada eros, vitae interdum augue semper quis. Fusce id magna nunc. Curabitur sollicitudin placerat semper. Cras et mi neque, a dignissim risus. Nulla venenatis porta lacus, vel rhoncus lectus tempor vitae. Duis sagittis venenatis rutrum. Curabitur tempor massa tortor.';
     
-    console.log('GENERATE -> ', defaultPages, fileName, addEndBarcode);
+    debug('GENERATE -> ', defaultPages, fileName, addEndBarcode);
 
     async()
       .then((next) => {
-        console.log('New barcode generation start...');
+        debug('New barcode generation start...');
         var url = `http://localhost/#/forms/filings/${uid(15)}`;
         var id = url.substring(url.lastIndexOf('/') + 1,url.length);
         fileName = `${id}-${fileName}`;
@@ -44,7 +45,7 @@ exports.generate = function(defaultPages, fileName, addEndBarcode) {
         
       })
       .then((next) => {
-        console.log(`Barcode generated ${PNG != null}`);
+        debug(`Barcode generated ${PNG != null}`);
         next();
       })
       .then((next) => {
@@ -94,7 +95,7 @@ exports.generate = function(defaultPages, fileName, addEndBarcode) {
     
         var range = doc.bufferedPageRange();
     
-        console.log('RANGE:', range);
+        debug('RANGE:', range);
         for (var i = range.start; i < range.count; i++) {
           doc.switchToPage(i);
     
@@ -128,7 +129,7 @@ exports.generate = function(defaultPages, fileName, addEndBarcode) {
         
         // Close creation
         doc.end();
-        console.log(`PDF ${__dirname}/data/${fileName}.pdf Generated.`);
+        debug(`PDF ${__dirname}/data/${fileName}.pdf Generated.`);
         resolve({
           result: true,
           fileName: `${__dirname}/data/${fileName}.pdf`

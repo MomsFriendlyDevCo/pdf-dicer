@@ -19,8 +19,9 @@
   "scripts": {
     "test": "FORCE_COLOR=t tape ./test/**/*.test.js | tap-diff",
     "split:example": "node ./playground/example/split.js",
-    "playground:generate": "GENERATE=true node ./playground/playground.js",
-    "playground:join": "GENERATE=false node ./playground/playground.js",
+    "playground": "npm run playground:generate && npm run playground:join",
+    "playground:generate": "DEBUG=playground,generate-pdf GENERATE=true node ./playground/playground.js",
+    "playground:join": "DEBUG=playground,pdf-join GENERATE=false node ./playground/playground.js",
     "quagga:demo": "./node_modules/http-server/bin/http-server ./playground/quagga-demo & node ./playground/quagga-demo/open.js"
   },
   "dependencies": {
