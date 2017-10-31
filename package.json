@@ -1,6 +1,6 @@
 {
   "name": "pdf-dicer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Split PDF files into many based on barcode separators",
   "main": "index.js",
   "engines": {
@@ -17,8 +17,11 @@
   },
   "homepage": "https://github.com/hash-bang/pdf-dicer#readme",
   "scripts": {
-    "test": "mocha",
-    "example-split": "node ./example/split.js"
+    "test": "FORCE_COLOR=t tape ./test/**/*.test.js | tap-diff",
+    "playground": "npm run playground:generate && npm run playground:join",
+    "playground:generate": "DEBUG=playground,generate-pdf GENERATE=true node ./playground/playground.js",
+    "playground:join": "DEBUG=playground,pdf-join GENERATE=false node ./playground/playground.js",
+    "quagga:demo": "./node_modules/http-server/bin/http-server ./playground/quagga-demo & node ./playground/quagga-demo/open.js"
   },
   "dependencies": {
     "async-chainable": "^2.2.3",
@@ -30,8 +33,15 @@
     "temp": "^0.8.3"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
-    "mocha": "^3.2.0",
-    "mocha-logger": "^1.0.5"
+    "bluebird": "^3.5.1",
+    "bwip-js": "^1.6.0",
+    "debug": "^3.1.0",
+    "http-server": "^0.10.0",
+    "openurl": "^1.1.1",
+    "pdf-merge": "^1.0.2",
+    "pdfkit": "^0.8.3",
+    "tap-diff": "^0.1.1",
+    "tape": "^4.8.0",
+    "uid": "0.0.2"
   }
 }

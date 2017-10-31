@@ -17,7 +17,7 @@ function PDFDicer() {
 	dicer._defaults = {
 		reader: {
 			numOfWorkers: 0, // Always 0 in Node backend
-			locate: true, // Search for the barcode on the page
+			locate: false, // We have to indicate the location of the barcode
 			inputStream: {
 				size: false, // Force full image resolution
 			},
@@ -26,14 +26,6 @@ function PDFDicer() {
 				multiple: false,
 			},
 		},
-		areas: [
-			{ // Top left quarter
-				top: "0%",
-				right: "50%",
-				left: "0%",
-				bottom: "50%",
-			},
-		],
 		temp: {
 			prefix: 'pdfdicer-',
 		},
@@ -104,6 +96,7 @@ function PDFDicer() {
 			})
 			// }}}
 			// Build the PDF processing instance {{{
+			// More information about image processing on https://www.imagemagick.org/script/command-line-processing.php#option
 			.then('pdf', function(next) {
 				dicer.emit('tempDir', this.tempDir);
 				next(null, new pdfImage(input, {
@@ -111,6 +104,8 @@ function PDFDicer() {
 					convertOptions: {
 						'-quality': 100,
 						'-density': 150,
+						'-background': 'white',
+						'-alpha': 'remove'
 					},
 				}));
 			})
@@ -176,48 +171,55 @@ function PDFDicer() {
 					.end(nextPage);
 			})
 			// }}}
+			// Post pages analyzed emitters {{{
 			.then(function(next) {
 				dicer.emit('pagesAnalyzed', this.pages);
 				next();
 			})
 			// }}}
-			// Build range to split the pdf 
+			// Build range to split the pdf {{{
 			.set('range', new Object())
 			.then(function(next) {
 				dicer.emit('stage', 'loadRange');
 				var memBarcodeID = '';
 				var rangeCount = 1;
 				var index = 0;
-				for (var key in this.pages) {
-					if (this.pages.hasOwnProperty(key)) {
-						var page = this.pages[key];
-						memBarcodeID = (page.barcode === false) ? memBarcodeID : page.barcode.split('-')[0];
-
-						if (this.range[memBarcodeID] == null) {
-							this.range[memBarcodeID] = new Object();
-							this.range[memBarcodeID].barcode = new Object();
-							this.range[memBarcodeID].barcode.start = page.barcode;
-              this.range[memBarcodeID].pages = 1;
-              this.range[memBarcodeID].from = index + 1;
-            } else {
-							this.range[memBarcodeID].pages++;
-							if (page.barcode !== false)
-								this.range[memBarcodeID].barcode.end = page.barcode;
-            }
+				
+				try {
+					for (var key in this.pages) {
+						if (this.pages.hasOwnProperty(key)) {
+							var page = this.pages[key];
+							memBarcodeID = (page.barcode === false) ? memBarcodeID : page.barcode.split('-')[0];
+	
+							if (this.range[memBarcodeID] == null) {
+								this.range[memBarcodeID] = new Object();
+								this.range[memBarcodeID].barcode = new Object();
+								this.range[memBarcodeID].barcode.id = page.barcode.substring(page.barcode.lastIndexOf("/") + 1, page.barcode.length);
+								this.range[memBarcodeID].barcode.start = page.barcode;
+								this.range[memBarcodeID].pages = 1;
+								this.range[memBarcodeID].from = index + 1;
+							} else {
+								this.range[memBarcodeID].pages++;
+								if (page.barcode !== false)
+									this.range[memBarcodeID].barcode.end = page.barcode;
+							}
+						}
+						index++;
 					}
-					index++;
-				}	
+				} catch (error) {
+					return next(error);
+				}
 
 				next();
 			})
 			// }}}
-			// Emits the data with the range to split the pdf
+			// Emits the data with the range to split the pdf {{{
 			.then(function(next) {
 				dicer.emit('rangeExtracted', this.range);
 				next();
 			})
 			// }}}
-			// Gives the resultant splitted pdfs
+			// Gives the resultant split pdfs {{{
 			.forEach('range', function(nextRange, range, rangeIndex) {
 				dicer.emit('stage', 'splitPDFWithScissors');
 				var from = range.from;
@@ -228,11 +230,12 @@ function PDFDicer() {
 				nextRange();
 			})
 			// }}}
-			// Emits the end signal for the functionality
+			// Emits the end signal for the functionality {{{
 			.then(function(next) {
 				dicer.emit('splitted', true);
 				next();
 			})
+			// }}}
 			.end(callback);
 
 		return this;
