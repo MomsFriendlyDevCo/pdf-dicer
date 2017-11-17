@@ -194,7 +194,12 @@ function PDFDicer() {
 							if (this.range[memBarcodeID] == null) {
 								this.range[memBarcodeID] = new Object();
 								this.range[memBarcodeID].barcode = new Object();
-								this.range[memBarcodeID].barcode.id = page.barcode.substring(page.barcode.lastIndexOf("/") + 1, page.barcode.length);
+								try {
+									this.range[memBarcodeID].barcode.id = page.barcode.substring(page.barcode.lastIndexOf("/") + 1, page.barcode.length);
+								} catch (error) {
+									// The barcode scanner is not able to find the barcode information.
+									this.range[memBarcodeID].barcode.id = page.barcode;
+								}
 								this.range[memBarcodeID].barcode.start = page.barcode;
 								this.range[memBarcodeID].pages = 1;
 								this.range[memBarcodeID].from = index + 1;
