@@ -18,6 +18,7 @@
   "homepage": "https://github.com/hash-bang/pdf-dicer#readme",
   "scripts": {
     "test": "FORCE_COLOR=t tape ./test/**/*.test.js | tap-diff",
+    "test:debug": "DEBUG=test FORCE_COLOR=t tape ./test/**/*.test.js | tap-diff",
     "playground": "npm run playground:generate && npm run playground:join",
     "playground:generate": "DEBUG=playground,generate-pdf GENERATE=true node ./playground/playground.js",
     "playground:join": "DEBUG=playground,pdf-join GENERATE=false node ./playground/playground.js",
