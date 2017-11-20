@@ -212,6 +212,7 @@ function PDFDicer() {
 						index++;
 					}
 				} catch (error) {
+					console.error('[PDF-DICER] Error', error);
 					return next(error);
 				}
 
