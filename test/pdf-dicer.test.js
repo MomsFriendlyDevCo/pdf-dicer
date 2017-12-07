@@ -216,7 +216,7 @@ test(testOptions[2].name, { timeout: testOptions[2].timeout, skip: testOptions[2
 });
 
 test(testOptions[3].name, { timeout: testOptions[3].timeout, skip: testOptions[3].skip }, function(assert) {
-	outputPath = createTestDirectory(`${__dirname}/output/test`);
+	outputPath = createTestDirectory(`${__dirname}/output/all-samples`);
 
 	var options = {
 		temp: {
