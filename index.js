@@ -105,7 +105,8 @@ function PDFDicer() {
 						'-quality': 100,
 						'-density': 150,
 						'-background': 'white',
-						'-alpha': 'remove'
+						'-alpha': 'remove',
+						'-gaussian-blur': '0x1'
 					},
 				}));
 			})
