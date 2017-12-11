@@ -96,7 +96,7 @@ function PDFDicer() {
 			})
 			// }}}
 			// Build the PDF processing instance {{{
-			// More information about image processing on https://www.imagemagick.org/script/command-line-processing.php#option
+			// More information about image processing on https://www.imagemagick.org/script/command-line-options.php
 			.then('pdf', function(next) {
 				dicer.emit('tempDir', this.tempDir);
 				next(null, new pdfImage(input, {
@@ -185,13 +185,13 @@ function PDFDicer() {
 				var memBarcodeID = '';
 				var rangeCount = 1;
 				var index = 0;
-				
+
 				try {
 					for (var key in this.pages) {
 						if (this.pages.hasOwnProperty(key)) {
 							var page = this.pages[key];
 							memBarcodeID = (page.barcode === false) ? memBarcodeID : page.barcode.split('-')[0];
-	
+
 							if (this.range[memBarcodeID] == null) {
 								this.range[memBarcodeID] = new Object();
 								this.range[memBarcodeID].barcode = new Object();
@@ -233,7 +233,7 @@ function PDFDicer() {
 				var to = range.from + range.pages - 1;
 
 				dicer.emit('split', range, scissors(input).range(from, to).pdfStream());
-				
+
 				nextRange();
 			})
 			// }}}
