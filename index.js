@@ -315,7 +315,7 @@ function PDFDicer(options) {
 			// }}}
 			// Emits the end signal for the functionality {{{
 			.then(function(next) {
-				dicer.emit('splitted', true);
+				dicer.emit('splitted');
 				next();
 			})
 			// }}}
