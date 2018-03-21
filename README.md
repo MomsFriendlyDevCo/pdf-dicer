@@ -64,19 +64,23 @@ An object of the instance settings. These can be set either on construction, via
 
 The following settings are supported:
 
-| Setting          | Type    | Default                                         | Profile | Description                                                                    |
-|------------------|---------|-------------------------------------------------|---------|--------------------------------------------------------------------------------|
-| `areas`          | Array   | `{top:'3%',right:'2%',left:'2%',bottom:87}`     | Quagga  | The areas of the input pages that Quagga should scan                           |
-| `imageFormat`    | String  | `png` (Quagga), `tif` (Bardecode)               | All     | The intermediate image format to use before processing the barcode             |
-| `magickOptions`  | Object  | Various (Quagga), `{}` (Bardecode)              | All     | Additional options to pass to ImageMagick when converting the PDF to images    |
-| `quagga`         | Object  | See below                                       | Quagga  | Options specific to Quagga                                                     |
-| `quagga.locate`  | Boolean | `false`                                         | Quagga  | Indicates if Quagga should try to detect the barcode or we should use areas    |
-| `quagga.decoder` | Object  | `{readers:['code_128_reader'],multiple: false}` | Quagga  | Options passed to the Quagga decoder                                           |
-| `temp`           | Object  | See below                                       | All     | Options passed to Temp when generating a temporary directory                   |
-| `temp.prefix`    | String  | `pdfdicer-`                                     | All     | The prefix used when generating a temporary directory                          |
-| `threads`        | Object  | See below                                       | All     | Options used for async threading                                               |
-| `threads.pages`  | Number  | `1`                                             | All     | The number of threads allowed to run simultaneously when processing pages      |
-| `threads.areas`  | Number  | `1`                                             | Quagga  | The number of threads allowed to run simultaneously when processing page areas |
+| Setting                     | Type      | Default                                           | Profile   | Description                                                                      |
+|-----------------------------|-----------|---------------------------------------------------|-----------|----------------------------------------------------------------------------------|
+| `areas`                     | Array     | `{top:'3%',right:'2%',left:'2%',bottom:87}`       | Quagga    | The areas of the input pages that Quagga should scan                             |
+| `imageFormat`               | String    | `png` (Quagga), `tif` (Bardecode)                 | All       | The intermediate image format to use before processing the barcode               |
+| `magickOptions`             | Object    | Various (Quagga), `{}` (Bardecode)                | All       | Additional options to pass to ImageMagick when converting the PDF to images      |
+| `bardecode`                 | Object    | See below                                         | Bardecode | Options specific to Bardecode                                                    |
+| `bardecode.bin`             | String    | `/opt/bardecoder/bin/bardecode`                   | Bardecode | Path to the `bardecode` binary                                                   |
+| `bardecode.checkEvaluation` | Boolean   | `true`                                            | Bardecode | Check that the barcode doesn't end in `???` and raise a warning if it does       |
+| `bardecode.serial`          | String    | `""`                                              | Bardecode | Your bardecode serial number                                                     |
+| `quagga`                    | Object    | See below                                         | Quagga    | Options specific to Quagga                                                       |
+| `quagga.locate`             | Boolean   | `false`                                           | Quagga    | Indicates if Quagga should try to detect the barcode or we should use areas      |
+| `quagga.decoder`            | Object    | `{readers:['code_128_reader'],multiple: false}`   | Quagga    | Options passed to the Quagga decoder                                             |
+| `temp`                      | Object    | See below                                         | All       | Options passed to Temp when generating a temporary directory                     |
+| `temp.prefix`               | String    | `pdfdicer-`                                       | All       | The prefix used when generating a temporary directory                            |
+| `threads`                   | Object    | See below                                         | All       | Options used for async threading                                                 |
+| `threads.pages`             | Number    | `1`                                               | All       | The number of threads allowed to run simultaneously when processing pages        |
+| `threads.areas`             | Number    | `1`                                               | Quagga    | The number of threads allowed to run simultaneously when processing page areas   |
 
 
 dicer.set(setting, value)

@@ -26,6 +26,7 @@ function PDFDicer(options) {
 		bardecode: {
 			bin: '/opt/bardecoder/bin/bardecode',
 			checkEvaluation: true,
+			serial: '',
 		},
 		quagga: { // Options passed to Quagga
 			numOfWorkers: 0, // Always 0 in Node backend
@@ -225,9 +226,15 @@ function PDFDicer(options) {
 						})
 						.end(nextPage);
 				} else if (settings.driver == 'bardecode') {
+					var runCommand = [
+						settings.bardecode.bin,
+						page.path,
+					];
+					if (settings.bardecode.serial) runCommand.push('-K', settings.bardecode.serial); // Append serial number if we have one
+
 					async()
 						.use(asyncExec)
-						.exec('response', [settings.bardecode.bin, page.path])
+						.exec('response', runCommand)
 						.then('response', function(next) {
 							var firstExtracted = _(this.response)
 								.filter(i => ! /^EVALUATION MODE/.test(i))
