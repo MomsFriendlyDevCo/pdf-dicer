@@ -22,7 +22,13 @@ function PDFDicer(options) {
 			{ top: "3%", right: "2%", left: "2%", bottom: "87" }
 		],
 		imageFormat: 'png',
-		magickOptions: {}, // Options passed to ImageMagick when converting pdf -> page output format
+		magickOptions: { // Options passed to ImageMagick when converting pdf -> page output format
+			'-quality': 100,
+			'-density': 150,
+			'-background': 'white',
+			'-alpha': 'remove',
+			'-gaussian-blur': '0x1',
+		},
 		bardecode: {
 			bin: '/opt/bardecoder/bin/bardecode',
 			checkEvaluation: true,
@@ -52,22 +58,16 @@ function PDFDicer(options) {
 		switch (name) {
 			case 'quagga':
 				_.merge(dicer.settings, {
+					profile: 'quagga',
 					driver: 'quagga',
 					imageFormat: 'png',
-					magickOptions: {
-						'-quality': 100,
-						'-density': 150,
-						'-background': 'white',
-						'-alpha': 'remove',
-						'-gaussian-blur': '0x1',
-					},
 				});
 				break;
 			case 'bardecode':
 				_.merge(dicer.settings, {
+					profile: 'bardecode',
 					driver: 'bardecode',
 					imageFormat: 'tif',
-					magickOptions: {},
 				});
 				break;
 			default:
