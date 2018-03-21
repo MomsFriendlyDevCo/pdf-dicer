@@ -16,6 +16,7 @@ function PDFDicer(options) {
 	var dicer = this;
 
 	dicer.settings = _.defaults(options, {
+		profile: 'quagga', // Default profile to use
 		areas: [
 			// Top-center area
 			{ top: "3%", right: "2%", left: "2%", bottom: "87" }
@@ -23,7 +24,7 @@ function PDFDicer(options) {
 		imageFormat: 'png',
 		magickOptions: {}, // Options passed to ImageMagick when converting pdf -> page output format
 		bardecode: {
-			bin: '/home/mc/Desktop/builds/bardecoder_8_1_1/bin/bardecode',
+			bin: '/opt/bardecoder/bin/bardecode',
 			checkEvaluation: true,
 		},
 		quagga: { // Options passed to Quagga
@@ -324,7 +325,7 @@ function PDFDicer(options) {
 		return this;
 	};
 
-	dicer.profile('quagga'); // Load default profile
+	dicer.profile(dicer.settings.profile); // Load default profile
 };
 
 util.inherits(PDFDicer, events.EventEmitter);
