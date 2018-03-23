@@ -210,7 +210,7 @@ function PDFDicer(options) {
 					async()
 						.limit(settings.threads.areas)
 						.forEach(settings.areas, function(nextArea, area) {
-							barcodeReader.decodeSingle(Object.assign({}, settings.quagga, {
+							barcodeReader.decodeSingle(_.merge({}, settings.quagga, {
 								src: page.path,
 								inputStream: {
 									area: area,
