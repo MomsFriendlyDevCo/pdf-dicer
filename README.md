@@ -72,7 +72,8 @@ The following settings are supported:
 | `bardecode`                 | Object    | See below                                         | Bardecode | Options specific to Bardecode                                                    |
 | `bardecode.bin`             | String    | `/opt/bardecoder/bin/bardecode`                   | Bardecode | Path to the `bardecode` binary                                                   |
 | `bardecode.checkEvaluation` | Boolean   | `true`                                            | Bardecode | Check that the barcode doesn't end in `???` and raise a warning if it does       |
-| `bardecode.serial`          | String    | `""`                                              | Bardecode | Your bardecode serial number                                                     |
+| `bardecode.serial`          | String    | `""`                                              | Bardecode | Your Bardecode serial number                                                     |
+| `filter`                    | Function  | `(page) => true`                                  | All       | Optional filter to discard pages before calculating ranges                       |
 | `quagga`                    | Object    | See below                                         | Quagga    | Options specific to Quagga                                                       |
 | `quagga.locate`             | Boolean   | `false`                                           | Quagga    | Indicates if Quagga should try to detect the barcode or we should use areas      |
 | `quagga.decoder`            | Object    | `{readers:['code_128_reader'],multiple: false}`   | Quagga    | Options passed to the Quagga decoder                                             |
@@ -109,13 +110,15 @@ Events
 ------
 The following events are fired by this module:
 
-| Event            | Arguments            | Description                                                                                                                                                                                  |
-|------------------|----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `stage`          | `(stageName)`        | Fired for each stage of operation. ENUM: 'init', 'readPDF', 'readPages', 'extracted', 'loadRange', 'splitPDFWithScissors', 'splitPDFWithScissors' stage is thrown as many times as is needed |
-| `tempDir`        | `(path)`             | Fired when a temp directory has been allocated                                                                                                                                               |
-| `pageConverted`  | `(page, pageOffset)` | Fired for each page that is converted                                                                                                                                                        |
-| `pagesConverted` | `(pages)`            | Fired when all pages have been converted                                                                                                                                                     |
-| `pageAnalyze`    | `(page)`             | Fired before an individual page is analyzed                                                                                                                                                  |
-| `pageAnalyzed`   | `(page)`             | Fired after a page has been analyzed                                                                                                                                                         |
-| `pagesAnalyzed`  | `(pages)`            | Fired when all pages have been analyzed                                                                                                                                                      |
-| `split`          | `(range, stream)`    | Fired when a range has been detected and a stream is ready
+| Event             | Arguments            | Description                                                 |
+|-------------------|----------------------|-------------------------------------------------------------|
+| `stage`           | `(stageName)`        | Fired for each stage of operation. ENUM: 'init', 'readPDF', 'readPages', 'extracted', 'filtering', 'loadRange', 'splitPDFWithScissors', 'splitPDFWithScissors' stage is thrown as many times as is needed |
+| `tempDir`         | `(path)`             | Fired when a temp directory has been allocated              |
+| `pageConverted`   | `(page, pageOffset)` | Fired for each page that is converted                       |
+| `pagesConverted`  | `(pages)`            | Fired when all pages have been converted                    |
+| `pageAnalyze`     | `(page)`             | Fired before an individual page is analyzed                 |
+| `barcodeFiltered` | `(page)`             | Fired if a page is filtered out                             |
+| `barcodePassed`   | `(page)`             | Fired if a page passes filtering and is not filtered out    |
+| `pageAnalyzed`    | `(page)`             | Fired after a page has been analyzed                        |
+| `pagesAnalyzed`   | `(pages)`            | Fired when all pages have been analyzed                     |
+| `split`           | `(range, stream)`    | Fired when a range has been detected and a stream is ready  |

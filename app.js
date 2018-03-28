@@ -2,6 +2,7 @@
 
 var async = require('async-chainable');
 var dicer = require('./index');
+var minimatch = require('minimatch');
 var program = require('commander');
 
 program
@@ -11,6 +12,7 @@ program
 	.option('-w, --write', 'Output PDF files (use --dir to specify a path, otherwise the cwd is used)')
 	.option('-d, --dir [path]', 'Output PDFs to the specified path instead of the current directory')
 	.option('-p, --profile [profile]', 'Use the specified input profile. Options: quagga, bardecode')
+	.option('-f, --filter [glob]', 'Only accept (and split on) barcodes with the supplied globbing expression')
 	.option('-v, --verbose', 'Be verbose')
 	.parse(process.argv);
 
@@ -27,6 +29,13 @@ async()
 		next(null, new dicer());
 	})
 	// }}}
+	// --filter {{{
+	.then(function(next) {
+		if (!program.filter) return next();
+		this.dicer.set('filter', page => page.barcode ? minimatch(page.barcode, program.filter) : false);
+		next();
+	})
+	// }}}
 	// --profile {{{
 	.then(function(next) {
 		if (!program.profile) return next();
@@ -40,7 +49,13 @@ async()
 	// --verbose {{{
 	.then(function(next) {
 		if (!program.verbose) return next();
+
 		this.dicer.on('stage', stage => console.log('Stage =', stage));
+
+		this.dicer.on('barcodeFiltered', page => {
+			if (page.barcode !== false) console.log('Barcode rejected on page', page.number, '=', page.barcode)
+		});
+
 		next();
 	})
 	// }}}

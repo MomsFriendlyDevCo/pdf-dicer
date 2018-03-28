@@ -45,6 +45,7 @@ function PDFDicer(options) {
 				multiple: false,
 			},
 		},
+		filter: page => true,
 		temp: {
 			prefix: 'pdfdicer-',
 		},
@@ -107,12 +108,14 @@ function PDFDicer(options) {
 	 * @param {function} callback Callback function to fire on completion or error
 	 * @return {PDFDicer} This chainable object
 	 *
-	 * @emits stage Fired at each stage of the process. ENUM: 'init', 'readPDF', 'readPages', 'extracted', 'loadRange', 'splitPDFWithScissors', 'splitPDFWithScissors' stage is thrown as many times as is needed.
+	 * @emits stage Fired at each stage of the process. ENUM: 'init', 'readPDF', 'readPages', 'extracted', 'filtering', 'loadRange', 'splitPDFWithScissors', 'splitPDFWithScissors' stage is thrown as many times as is needed.
 	 * @emits tempDir The temp dir used for storage
 	 * @emits pageConverted  Fired with each page and pageOffset extracted as they are extracted
 	 * @emits pagesConverted Fired with an array of all extracted page collection
 	 * @emits pageAnalyze Fired before each page gets analyzed with the page object
 	 * @emits pageAnalyzed Fired after each page has been analyzed with the page object
+	 * @emits barcodeFiltered Fired when a specific barcode is filtered out of the input. Emitted as (page)
+	 * @emits barcodePassed Fired when a barcode passes a filter test. Emitted as (page)
 	 * @emits pagesAnalyzed Fired after all pages have been analyzed with the page collection
 	 * @emits rangeExtracted Fired after the splitted range has been calculated from the original input pdf
 	 * @emits split Fired after each pdf has been separated in the range and it gives you the pdf resultant
@@ -254,6 +257,23 @@ function PDFDicer(options) {
 				} else {
 					throw new Error(`Unknown page decoder: ${settings.driver}`);
 				}
+			})
+			// }}}
+			// Filter page barcodes {{{
+			.then(function(next) {
+				dicer.emit('stage', 'filtering');
+				if (!_.isFunction(settings.filter)) return next();
+
+				_.forEach(this.pages, page => {
+					var res = settings.filter(page);
+					if (!res) {
+						dicer.emit('barcodeFiltered', page);
+						page.barcode = false;
+					} else {
+						dicer.emit('barcodePassed', page);
+					}
+				});
+				next();
 			})
 			// }}}
 			// Post pages analyzed emitters {{{
