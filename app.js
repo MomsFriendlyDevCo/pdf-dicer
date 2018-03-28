@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var async = require('async-chainable');
+var colors = require('chalk');
 var dicer = require('./index');
 var minimatch = require('minimatch');
 var program = require('commander');
@@ -12,6 +13,7 @@ program
 	.option('-w, --write', 'Output PDF files (use --dir to specify a path, otherwise the cwd is used)')
 	.option('-d, --dir [path]', 'Output PDFs to the specified path instead of the current directory')
 	.option('-p, --profile [profile]', 'Use the specified input profile. Options: quagga, bardecode')
+	.option('-s, --set [setting=value]', 'CSV of specific Dicer settings (e.g. `--set bardecode.serial=1234)`')
 	.option('-f, --filter [glob]', 'Only accept (and split on) barcodes with the supplied globbing expression')
 	.option('-v, --verbose', 'Be verbose')
 	.parse(process.argv);
@@ -32,13 +34,26 @@ async()
 	// --filter {{{
 	.then(function(next) {
 		if (!program.filter) return next();
+		if (program.verbose) console.log(colors.blue('info '), 'Using barcode glob', colors.cyan(program.filter));
 		this.dicer.set('filter', page => page.barcode ? minimatch(page.barcode, program.filter) : false);
+		next();
+	})
+	// }}}
+	// --set {{{
+	.then(function(next) {
+		if (!program.set) return next();
+		program.set.split(/\s*,\s*/).forEach(rawSetting => {
+			var [key, val] = rawSetting.split(/\s*=\s*/);
+			if (program.verbose) console.log(colors.blue('info '), 'Using setting [' + colors.cyan(key) + ']', '=', '[' + colors.cyan(val) + ']');
+			this.dicer.set(key, val);
+		});
 		next();
 	})
 	// }}}
 	// --profile {{{
 	.then(function(next) {
 		if (!program.profile) return next();
+		if (program.verbose) console.log(colors.blue('info '), 'Using profile', colors.cyan(program.profile));
 		this.dicer
 			.profile(program.profile)
 			.set('bardecode.checkEvaluation', false) // STFU about eval versions
@@ -50,10 +65,10 @@ async()
 	.then(function(next) {
 		if (!program.verbose) return next();
 
-		this.dicer.on('stage', stage => console.log('Stage =', stage));
+		this.dicer.on('stage', stage => console.log(colors.blue('stage'), stage));
 
 		this.dicer.on('barcodeFiltered', page => {
-			if (page.barcode !== false) console.log('Barcode rejected on page', page.number, '=', page.barcode)
+			if (page.barcode !== false) console.log(colors.yellow('warn '), 'Barcode rejected on page', colors.cyan(page.number), '=', colors.cyan(page.barcode));
 		});
 
 		next();
@@ -64,11 +79,11 @@ async()
 		if (!program.list) return next();
 
 		this.dicer.on('pageAnalyzed', page => {
-			if (page.barcode) console.log('Barcode extracted from page', page.number, '=', page.barcode);
+			if (page.barcode) console.log(colors.blue('info '), 'Barcode extracted from page', colors.cyan(page.number), '=', colors.cyan(page.barcode));
 		});
 
 		this.dicer.on('split', range => {
-			console.log('Split!', `Pages ${range.from} - ${range.from + range.pages} (${range.pages} pages)`, range.barcode.id);
+			console.log(colors.bold.blue('split'), 'Pages', colors.cyan(range.from), '-', colors.cyan(range.from + range.pages), `(${colors.cyan(range.pages)} pages)`, '=', colors.cyan(range.barcode.id));
 		});
 
 		next();
@@ -89,7 +104,7 @@ async()
 	// End {{{
 	.end(function(err) {
 		if (err) {
-			console.log('ERROR', err.toString());
+			console.log(colors.bold.red('ERROR'), err.toString());
 			process.exit(1);
 		} else {
 			process.exit(0);
