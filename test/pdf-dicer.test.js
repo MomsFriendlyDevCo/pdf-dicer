@@ -1,27 +1,12 @@
-var test = require('tape');
-
-var debug = require('debug')('test');
+var expect = require('chai').expect;
 var _ = require('lodash');
 var fs = require('fs-extra')
 var pdfDicer = require('..');
-var outputPath = '';
 
+
+var outputPath = '';
 // Define test timeout
 var testTimeout = 60 * 1000;
-// Define which test is skiped
-var testOptions = [
-	// Default Testing
-	{ name: 'should split sample 1', skip: false, timeout: testTimeout },
-	{ name: 'should split sample 2', skip: false, timeout: testTimeout },
-	{ name: 'should split sample 3', skip: false, timeout: testTimeout },
-	{ name: 'should split all-samples', skip: false, timeout: testTimeout },
-
-	// Testing found incidences
-	{ name: 'should split scanned documents countering the barcode with imagemagick options', skip: false, timeout: testTimeout },
-];
-
-// https://github.com/substack/tape/issues/59
-var before = test;
 
 /**
  * Creates path to use in the test.
@@ -34,330 +19,588 @@ function createTestDirectory(directory) {
 	return directory;
 }
 
-before("before all tests", { timeout: testTimeout, skip: false }, function (assert) {
-	outputPath = `${__dirname}/output`;
-	// Clean and prepare work directory
-	if (fs.existsSync(outputPath)) {
-		fs.removeSync(outputPath);
-	}
-	createTestDirectory(outputPath);
-	assert.end()
+createTestDirectory(`${__dirname}/output`);
+
+describe('1. pdf-dicer - Sanity check', () => {
+
+	before('create path to use in the test', done => {
+		outputPath = `${__dirname}/output/1.sanity-check`;
+		// Clean and prepare work directory
+		if (fs.existsSync(outputPath)) {
+			fs.removeSync(outputPath);
+		}
+		createTestDirectory(outputPath);
+		done();
+	});
+
+	// {{{
+	it('should raise an error - (Unknown input type)', function () {
+
+		var options = {
+			temp: {
+				prefix: 'pdfdicer-',
+				dir: outputPath
+			}
+		};
+
+		var dicer = new pdfDicer();
+		dicer
+			.areas([
+				// Top-center area
+				{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+			])
+			.split(false, options, function (err, output) {
+				expect(err).to.be.ok;
+				expect(err).to.be.equal('Unknown input type');
+			});
+	});
+	// }}}
+
+	// {{{
+	it('should raise an error - (File not found)', function () {
+
+		var options = {
+			temp: {
+				prefix: 'pdfdicer-',
+				dir: outputPath
+			}
+		};
+
+		var dicer = new pdfDicer();
+		dicer
+			.areas([
+				// Top-center area
+				{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+			])
+			.split(`${__dirname}/data/default/file_not_found.pdf`, options, function (err, output) {
+				expect(err).to.be.ok;
+				expect(err).to.be.equal('File not found');
+			});
+	});
+	// }}}
+
+	// {{{
+	it('should raise an error - (Callback is missing)', function () {
+
+		var options = {
+			temp: {
+				prefix: 'pdfdicer-',
+				dir: outputPath
+			}
+		};
+
+		var dicer = new pdfDicer();
+		try {
+
+			dicer
+				.areas([
+					// Top-center area
+					{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+				])
+				.split(`${__dirname}/data/default/sample-1.pdf`, options);
+		} catch (err) {
+			expect(err).to.be.ok;
+			expect(err.message).to.be.equal('Callback required as the final parametert of pdfDicer.convert()');
+		}
+	});
+	// }}}
 });
 
-test(testOptions[0].name, { timeout: testOptions[0].timeout, skip: testOptions[0].skip }, function(assert) {
-	outputPath = createTestDirectory(`${__dirname}/output/sample-1`);
+describe('2. pdf-dicer - split sample-1.pdf', () => {
+	var extractedRange;
+	var fileCount;
+	var stages;
 
-	var options = {
-		temp: {
-			prefix: 'pdfdicer-',
-			dir: outputPath
+	before('create path to use in the test', function (done) {
+		this.timeout(testTimeout);
+		outputPath = `${__dirname}/output/2.sample-1`;
+		extractedRange = {};
+		fileCount = 0;
+		stages = [];
+
+		// Clean and prepare work directory
+		if (fs.existsSync(outputPath)) {
+			fs.removeSync(outputPath);
 		}
-	};
+		createTestDirectory(outputPath);
 
-	var dicer = new pdfDicer();
-	var stages = [];
-	dicer
-		.areas([
-			// Top-center area
-			{ top: "3%", right: "2%", left: "2%", bottom: "87" }
-		])
-		.on('stage', stage => {
-			debug('stage:', stage);
-			stages.push(stage);
-		})
-		.on('rangeExtracted', (range) => {
-			assert.deepEqual(range, {
-				'http://rkj.io/0000FC#BPyR+L': {
-					barcode: {
-						id: '0000FC#BPyR+L',
-						start: 'http://rkj.io/0000FC#BPyR+L',
-						end: 'http://rkj.io/0000FC#BPyR+L'
-					},
-					pages: 2,
-					from: 1
-				}
+		var options = {
+			temp: {
+				prefix: 'pdfdicer-',
+				dir: outputPath
+			}
+		};
+
+		var dicer = new pdfDicer();
+		dicer
+			.areas([
+				// Top-center area
+				{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+			])
+			.on('stage', stage => {
+				stages.push(stage);
+			})
+			.on('rangeExtracted', (range) => {
+				extractedRange = range;
+			})
+			.on('split', (data, stream) => {
+				stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
+			})
+			.on('splitted', () => {
+				var count = 0;
+				var fileNames = [
+					'example-0000FC#BPyR+L.pdf'
+				];
+				fs.readdirSync(outputPath).forEach(file => {
+					if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
+						count++;
+					}
+				});
+				fileCount = count;
+				done();
+			})
+			.split(`${__dirname}/data/default/sample-1.pdf`, options, function (err, output) {
+
 			});
-		})
-		.on('split', (data, stream) => {
-			stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
-		})
-		.on('splitted', () => {
-			var fileCount = 0;
-			var fileNames = [
-				'example-0000FC#BPyR+L.pdf'
-			];
-			fs.readdirSync(outputPath).forEach(file => {
-				if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
-					fileCount++;
-				}
-			});
-			assert.equal(fileCount, 1);
 
-		})
-		.split(`${__dirname}/data/default/sample-1.pdf`, options, function(err, output) {
-			if (err) return assert.end(err);
+	});
 
-			assert.end();
-		});
-});
-
-test(testOptions[1].name, { timeout: testOptions[1].timeout, skip: testOptions[1].skip }, function(assert) {
-	outputPath = createTestDirectory(`${__dirname}/output/sample-2`);
-
-	var options = {
-		temp: {
-			prefix: 'pdfdicer-',
-			dir: outputPath
-		}
-	};
-
-	var dicer = new pdfDicer();
-	var stages = [];
-	dicer
-		.areas([
-			// Top-center area
-			{ top: "3%", right: "2%", left: "2%", bottom: "87" }
-		])
-		.on('stage', stage => {
-			debug('stage:', stage);
-			stages.push(stage);
-		})
-		.on('rangeExtracted', (range) => {
-			assert.deepEqual(range, {
-				'http://rkj.io/0000MobL3y!<h': {
-					barcode: {
-						id: '0000MobL3y!<h',
-						start: 'http://rkj.io/0000MobL3y!<h',
-						end: 'http://rkj.io/0000MobL3y!<h'
-					},
-					pages: 2,
-					from: 1
-				}
-			});
-		})
-		.on('split', (data, stream) => {
-			stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
-		})
-		.on('splitted', () => {
-			var fileCount = 0;
-			var fileNames = [
-				'example-0000MobL3y!<h.pdf'
-			];
-			fs.readdirSync(outputPath).forEach(file => {
-				if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
-					fileCount++;
-				}
-			});
-			assert.equal(fileCount, 1);
-
-		})
-		.split(`${__dirname}/data/default/sample-2.pdf`, options, function(err, output) {
-			if (err) return assert.end(err);
-
-			assert.end();
-		});
-});
-
-test(testOptions[2].name, { timeout: testOptions[2].timeout, skip: testOptions[2].skip }, function(assert) {
-	outputPath = createTestDirectory(`${__dirname}/output/sample-3`);
-
-	var options = {
-		temp: {
-			prefix: 'pdfdicer-',
-			dir: outputPath
-		}
-	};
-
-	var dicer = new pdfDicer();
-	var stages = [];
-	dicer
-		.areas([
-			// Top-center area
-			{ top: "3%", right: "2%", left: "2%", bottom: "87" }
-		])
-		.on('stage', stage => {
-			debug('stage:', stage);
-			stages.push(stage);
-		})
-		.on('rangeExtracted', (range) => {
-			assert.deepEqual(range, {
-				'http://rkj.io/0000MC#6PyadL': {
-					barcode: {
-						id: '0000MC#6PyadL',
-						start: 'http://rkj.io/0000MC#6PyadL',
-						end: 'http://rkj.io/0000MC#6PyadL'
-					},
-					pages: 2,
-					from: 1
-				}
-			});
-		})
-		.on('split', (data, stream) => {
-			stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
-		})
-		.on('splitted', () => {
-			var fileCount = 0;
-			var fileNames = [
-				'example-0000MC#6PyadL.pdf'
-			];
-			fs.readdirSync(outputPath).forEach(file => {
-				if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
-					fileCount++;
-				}
-			});
-			assert.equal(fileCount, 1);
-
-		})
-		.split(`${__dirname}/data/default/sample-3.pdf`, options, function(err, output) {
-			if (err) return assert.end(err);
-
-			assert.end();
-		});
-});
-
-test(testOptions[3].name, { timeout: testOptions[3].timeout, skip: testOptions[3].skip }, function(assert) {
-	outputPath = createTestDirectory(`${__dirname}/output/all-samples`);
-
-	var options = {
-		temp: {
-			prefix: 'pdfdicer-',
-			dir: outputPath
-		}
-	};
-
-	var dicer = new pdfDicer();
-	var stages = [];
-	var counter = 0;
-	dicer
-		.areas([
-			// Top-center area
-			{ top: "3%", right: "2%", left: "2%", bottom: "87" }
-		])
-		.on('stage', stage => {
-			debug('stage:', stage);
-			stages.push(stage);
-		})
-		.on('rangeExtracted', (range) => {
-			assert.deepEqual(range,{
-				'http://rkj.io/0000FC#BPyR+L': {
-					barcode: {
-						id: '0000FC#BPyR+L',
-						start: 'http://rkj.io/0000FC#BPyR+L',
-						end: 'http://rkj.io/0000FC#BPyR+L'
-					},
-					pages: 2,
-					from: 1
+	// {{{
+	it('should have a correct range object - rangeExtracted event', function () {
+		expect(extractedRange).to.deep.equal({
+			'http://rkj.io/0000FC#BPyR+L': {
+				barcode: {
+					id: '0000FC#BPyR+L',
+					start: 'http://rkj.io/0000FC#BPyR+L',
+					end: 'http://rkj.io/0000FC#BPyR+L'
 				},
-				'http://rkj.io/0000MobL3y!<h': {
-					barcode: {
-						id: '0000MobL3y!<h',
-						start: 'http://rkj.io/0000MobL3y!<h',
-						end: 'http://rkj.io/0000MobL3y!<h'
-					},
-					pages: 2,
-					from: 3
-				},
-				'http://rkj.io/0000MC#6PyadL': {
-					barcode: {
-						id: '0000MC#6PyadL',
-						start: 'http://rkj.io/0000MC#6PyadL',
-						end: 'http://rkj.io/0000MC#6PyadL'
-					},
-					pages: 2,
-					from: 5
-				}
-			});
-		})
-		.on('split', (data, stream) => {
-			counter++;
-			stream.pipe(fs.createWriteStream(`${outputPath}/example-${counter}-${data.barcode.id}.pdf`));
-		})
-		.on('splitted', () => {
-			var fileCount = 0;
-			var fileNames = [
-				'example-1-0000FC#BPyR+L.pdf',
-				'example-2-0000MobL3y!<h.pdf',
-				'example-3-0000MC#6PyadL.pdf'
-			];
-			fs.readdirSync(outputPath).forEach(file => {
-				if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
-					fileCount++;
-				}
-			});
-			assert.equal(fileCount, 3);
-
-		})
-		.split(`${__dirname}/data/default/all-samples.pdf`, options, function(err, output) {
-			if (err) return assert.end(err);
-
-			assert.end();
+				pages: 2,
+				from: 1
+			}
 		});
+	});
+	// }}}
+
+	// {{{
+	it('should emit stage events in correct order - splitted event', function () {
+		expect(stages[0]).to.equal('init');
+		expect(stages[1]).to.equal('readPDF');
+		expect(stages[2]).to.equal('readPages');
+		expect(stages[3]).to.equal('extracted');
+		expect(stages[4]).to.equal('loadRange');
+		expect(stages[5]).to.equal('splitPDFWithScissors');
+	});
+	// }}}
+
+	// {{{
+	it('should have correct number of output pdf file - splitted event', function () {
+		expect(fileCount).to.equal(1);
+	});
+	// }}}
+
 });
 
-test(testOptions[4].name, { timeout: testOptions[4].timeout, skip: testOptions[4].skip }, function(assert) {
-	outputPath = createTestDirectory(`${__dirname}/output/scanned-documents`);
+describe('3. pdf-dicer - split sample-2.pdf', () => {
+	var extractedRange;
+	var fileCount;
+	var stages;
 
-	var options = {
-		temp: {
-			prefix: 'pdfdicer-',
-			dir: outputPath
+	before('create path to use in the test', function (done) {
+		this.timeout(testTimeout);
+		outputPath = `${__dirname}/output/3.sample-2`;
+		extractedRange = {};
+		fileCount = 0;
+		stages = [];
+
+		// Clean and prepare work directory
+		if (fs.existsSync(outputPath)) {
+			fs.removeSync(outputPath);
 		}
-	};
+		createTestDirectory(outputPath);
 
-	var dicer = new pdfDicer();
-	var stages = [];
-	var counter = 0;
-	dicer
-		.areas([
-			// Top-center area
-			{ top: "3%", right: "2%", left: "2%", bottom: "87" }
-		])
-		.on('stage', stage => {
-			debug('stage:', stage);
-			stages.push(stage);
-		})
-		.on('rangeExtracted', (range) => {
-			assert.deepEqual(range, {
-				'': {
-					barcode: {
-						id: false,
-						start: false
-					},
-					pages: 2,
-					from: 1
+		var options = {
+			temp: {
+				prefix: 'pdfdicer-',
+				dir: outputPath
+			}
+		};
+
+		var dicer = new pdfDicer();
+		dicer
+			.areas([
+				// Top-center area
+				{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+			])
+			.on('stage', stage => {
+				stages.push(stage);
+			})
+			.on('rangeExtracted', (range) => {
+				extractedRange = range;
+			})
+			.on('split', (data, stream) => {
+				stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
+			})
+			.on('splitted', () => {
+				var count = 0;
+				var fileNames = [
+					'example-0000MobL3y!<h.pdf'
+				];
+				fs.readdirSync(outputPath).forEach(file => {
+					if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
+						count++;
+					}
+				});
+				fileCount = count;
+				done();
+			})
+			.split(`${__dirname}/data/default/sample-2.pdf`, options, function (err, output) {
+
+			});
+
+	});
+
+	// {{{
+	it('should have a correct range object - rangeExtracted event', function () {
+		expect(extractedRange).to.deep.equal({
+			'http://rkj.io/0000MobL3y!<h': {
+				barcode: {
+					id: '0000MobL3y!<h',
+					start: 'http://rkj.io/0000MobL3y!<h',
+					end: 'http://rkj.io/0000MobL3y!<h'
 				},
-				'http://rkj.io/ok6b8R': {
-					barcode: {
-						id: 'ok6b8R',
-						start: 'http://rkj.io/ok6b8R',
-						end: 'http://rkj.io/ok6b8R'
-					},
-					pages: 2,
-					from: 3
-				}
-			});
-		})
-		.on('split', (data, stream) => {
-			counter++;
-			stream.pipe(fs.createWriteStream(`${outputPath}/example-${counter}-${data.barcode.id}.pdf`));
-		})
-		.on('splitted', () => {
-			var fileCount = 0;
-			var fileNames = [
-				'example-1-false.pdf',
-				'example-2-ok6b8R.pdf'
-			];
-			fs.readdirSync(outputPath).forEach(file => {
-				if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
-					fileCount++;
-				}
-			});
-			assert.equal(fileCount, 2);
-
-		})
-		.split(`${__dirname}/data/example-scanned-documents.pdf`, options, function(err, output) {
-			if (err) return assert.end(err);
-
-			assert.end();
+				pages: 2,
+				from: 1
+			}
 		});
+	});
+	// }}}
+
+	// {{{
+	it('should emit stage events in correct order - splitted event', function () {
+		expect(stages[0]).to.equal('init');
+		expect(stages[1]).to.equal('readPDF');
+		expect(stages[2]).to.equal('readPages');
+		expect(stages[3]).to.equal('extracted');
+		expect(stages[4]).to.equal('loadRange');
+		expect(stages[5]).to.equal('splitPDFWithScissors');
+	});
+	// }}}
+
+	// {{{
+	it('should have correct number of output pdf file - splitted event', function () {
+		expect(fileCount).to.equal(1);
+	});
+	// }}}
+
+});
+
+describe('4. pdf-dicer - split sample-3.pdf', () => {
+	var extractedRange;
+	var fileCount;
+	var stages;
+
+	before('create path to use in the test', function (done) {
+		this.timeout(testTimeout);
+		outputPath = `${__dirname}/output/4.sample-3`;
+		extractedRange = {};
+		fileCount = 0;
+		stages = [];
+
+		// Clean and prepare work directory
+		if (fs.existsSync(outputPath)) {
+			fs.removeSync(outputPath);
+		}
+		createTestDirectory(outputPath);
+
+		var options = {
+			temp: {
+				prefix: 'pdfdicer-',
+				dir: outputPath
+			}
+		};
+
+		var dicer = new pdfDicer();
+		dicer
+			.areas([
+				// Top-center area
+				{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+			])
+			.on('stage', stage => {
+				stages.push(stage);
+			})
+			.on('rangeExtracted', (range) => {
+				extractedRange = range;
+			})
+			.on('split', (data, stream) => {
+				stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
+			})
+			.on('splitted', () => {
+				var count = 0;
+				var fileNames = [
+					'example-0000MC#6PyadL.pdf'
+				];
+				fs.readdirSync(outputPath).forEach(file => {
+					if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
+						count++;
+					}
+				});
+				fileCount = count;
+				done();
+			})
+			.split(`${__dirname}/data/default/sample-3.pdf`, options, function (err, output) {
+
+			});
+
+	});
+
+	// {{{
+	it('should have a correct range object - rangeExtracted event', function () {
+		expect(extractedRange).to.deep.equal({
+			'http://rkj.io/0000MC#6PyadL': {
+				barcode: {
+					id: '0000MC#6PyadL',
+					start: 'http://rkj.io/0000MC#6PyadL',
+					end: 'http://rkj.io/0000MC#6PyadL'
+				},
+				pages: 2,
+				from: 1
+			}
+		});
+	});
+	// }}}
+
+	// {{{
+	it('should emit stage events in correct order - splitted event', function () {
+		expect(stages[0]).to.equal('init');
+		expect(stages[1]).to.equal('readPDF');
+		expect(stages[2]).to.equal('readPages');
+		expect(stages[3]).to.equal('extracted');
+		expect(stages[4]).to.equal('loadRange');
+		expect(stages[5]).to.equal('splitPDFWithScissors');
+	});
+	// }}}
+
+	// {{{
+	it('should have correct number of output pdf file - splitted event', function () {
+		expect(fileCount).to.equal(1);
+	});
+	// }}}
+
+});
+
+describe('5. pdf-dicer - split all-samples.pdf', () => {
+	var extractedRange;
+	var fileCount;
+	var stages;
+
+	before('create path to use in the test', function (done) {
+		this.timeout(testTimeout);
+		outputPath = `${__dirname}/output/5.all-samples`;
+		extractedRange = {};
+		fileCount = 0;
+		stages = [];
+
+		// Clean and prepare work directory
+		if (fs.existsSync(outputPath)) {
+			fs.removeSync(outputPath);
+		}
+		createTestDirectory(outputPath);
+
+		var options = {
+			temp: {
+				prefix: 'pdfdicer-',
+				dir: outputPath
+			}
+		};
+
+		var dicer = new pdfDicer();
+		dicer
+			.areas([
+				// Top-center area
+				{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+			])
+			.on('stage', stage => {
+				stages.push(stage);
+			})
+			.on('rangeExtracted', (range) => {
+				extractedRange = range;
+			})
+			.on('split', (data, stream) => {
+				stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
+			})
+			.on('splitted', () => {
+				var count = 0;
+				var fileNames = [
+					'example-0000FC#BPyR+L.pdf',
+					'example-0000MobL3y!<h.pdf',
+					'example-0000MC#6PyadL.pdf'
+				];
+				fs.readdirSync(outputPath).forEach(file => {
+					if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
+						count++;
+					}
+				});
+				fileCount = count;
+				done();
+			})
+			.split(`${__dirname}/data/default/all-samples.pdf`, options, function (err, output) {
+
+			});
+
+	});
+
+	// {{{
+	it('should have a correct range object - rangeExtracted event', function () {
+		expect(extractedRange).to.deep.equal({
+			'http://rkj.io/0000FC#BPyR+L': {
+				barcode: {
+					id: '0000FC#BPyR+L',
+					start: 'http://rkj.io/0000FC#BPyR+L',
+					end: 'http://rkj.io/0000FC#BPyR+L'
+				},
+				pages: 2,
+				from: 1
+			},
+			'http://rkj.io/0000MobL3y!<h': {
+				barcode: {
+					id: '0000MobL3y!<h',
+					start: 'http://rkj.io/0000MobL3y!<h',
+					end: 'http://rkj.io/0000MobL3y!<h'
+				},
+				pages: 2,
+				from: 3
+			},
+			'http://rkj.io/0000MC#6PyadL': {
+				barcode: {
+					id: '0000MC#6PyadL',
+					start: 'http://rkj.io/0000MC#6PyadL',
+					end: 'http://rkj.io/0000MC#6PyadL'
+				},
+				pages: 2,
+				from: 5
+			}
+		});
+	});
+	// }}}
+
+	// {{{
+	it('should emit stage events in correct order - splitted event', function () {
+		expect(stages[0]).to.equal('init');
+		expect(stages[1]).to.equal('readPDF');
+		expect(stages[2]).to.equal('readPages');
+		expect(stages[3]).to.equal('extracted');
+		expect(stages[4]).to.equal('loadRange');
+		expect(stages[5]).to.equal('splitPDFWithScissors');
+	});
+	// }}}
+
+	// {{{
+	it('should have correct number of output pdf file - splitted event', function () {
+		expect(fileCount).to.equal(3);
+	});
+	// }}}
+
+});
+
+describe('6. pdf-dicer - split example-scanned-documents.pdf', () => {
+	var extractedRange;
+	var fileCount;
+	var stages;
+
+	before('create path to use in the test', function (done) {
+		this.timeout(testTimeout);
+		outputPath = `${__dirname}/output/6.example-scanned-documents`;
+		extractedRange = {};
+		fileCount = 0;
+		stages = [];
+
+		// Clean and prepare work directory
+		if (fs.existsSync(outputPath)) {
+			fs.removeSync(outputPath);
+		}
+		createTestDirectory(outputPath);
+
+		var options = {
+			temp: {
+				prefix: 'pdfdicer-',
+				dir: outputPath
+			}
+		};
+
+		var dicer = new pdfDicer();
+		dicer
+			.areas([
+				// Top-center area
+				{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+			])
+			.on('stage', stage => {
+				stages.push(stage);
+			})
+			.on('rangeExtracted', (range) => {
+				extractedRange = range;
+			})
+			.on('split', (data, stream) => {
+				stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
+			})
+			.on('splitted', () => {
+				var count = 0;
+				var fileNames = [
+					'example-false.pdf',
+					'example-ok6b8R.pdf'
+				];
+				fs.readdirSync(outputPath).forEach(file => {
+					if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
+						count++;
+					}
+				});
+				fileCount = count;
+				done();
+			})
+			.split(`${__dirname}/data/example-scanned-documents.pdf`, options, function (err, output) {
+
+			});
+
+	});
+
+	// {{{
+	it('should have a correct range object - rangeExtracted event', function () {
+		expect(extractedRange).to.deep.equal({
+			'': {
+				barcode: {
+					id: false,
+					start: false
+				},
+				pages: 2,
+				from: 1
+			},
+			'http://rkj.io/ok6b8R': {
+				barcode: {
+					id: 'ok6b8R',
+					start: 'http://rkj.io/ok6b8R',
+					end: 'http://rkj.io/ok6b8R'
+				},
+				pages: 2,
+				from: 3
+			}
+		});
+	});
+	// }}}
+
+	// {{{
+	it('should emit stage events in correct order - splitted event', function () {
+		expect(stages[0]).to.equal('init');
+		expect(stages[1]).to.equal('readPDF');
+		expect(stages[2]).to.equal('readPages');
+		expect(stages[3]).to.equal('extracted');
+		expect(stages[4]).to.equal('loadRange');
+		expect(stages[5]).to.equal('splitPDFWithScissors');
+	});
+	// }}}
+
+	// {{{
+	it('should have correct number of output pdf file - splitted event', function () {
+		expect(fileCount).to.equal(2);
+	});
+	// }}}
+
 });
