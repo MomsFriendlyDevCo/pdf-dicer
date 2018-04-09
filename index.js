@@ -333,10 +333,9 @@ function PDFDicer(options) {
 			// Gives the resultant split pdfs {{{
 			.forEach('range', function(nextRange, range, rangeIndex) {
 				dicer.emit('stage', 'splitPDFWithScissors');
-				var from = range.from;
-				var to = range.from + range.pages - 1;
+				range.to = range.from + range.pages - 1;
 
-				dicer.emit('split', range, scissors(input).range(from, to).pdfStream());
+				dicer.emit('split', range, scissors(input).range(range.from, range.to).pdfStream());
 
 				nextRange();
 			})

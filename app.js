@@ -3,6 +3,8 @@
 var async = require('async-chainable');
 var colors = require('chalk');
 var dicer = require('./index');
+var fs = require('fs');
+var fspath = require('path');
 var minimatch = require('minimatch');
 var program = require('commander');
 
@@ -90,8 +92,17 @@ async()
 	})
 	// }}}
 	// --write {{{
+	.set('writeStreams', [])
 	.then(function(next) {
 		if (!program.write) return next();
+
+		this.dicer.on('split', (range, stream) => {
+			var outputStream = fs.createWriteStream(fspath.join(program.dir || process.cwd(), `OUT-${range.from}-${range.to}.pdf`));
+
+			stream.pipe(outputStream);
+			this.writeStreams.push(outputStream);
+		});
+
 		next();
 	})
 	// }}}
@@ -99,6 +110,11 @@ async()
 	.limit(1)
 	.forEach(program.args, function(next, path) {
 		this.dicer.split(path, next);
+	})
+	// }}}
+	// Wait for pipes to flush if we are saving documents {{{
+	.forEach('writeStreams', function(next, stream) {
+		stream.on('close', ()=> next());
 	})
 	// }}}
 	// End {{{
