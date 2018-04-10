@@ -49,6 +49,7 @@ function PDFDicer(options) {
 		temp: {
 			prefix: 'pdfdicer-',
 		},
+		tempClean: true,
 		threads: {
 			pages: 1,
 			areas: 1,
@@ -349,6 +350,12 @@ function PDFDicer(options) {
 			.then(function(next) {
 				dicer.emit('splitted');
 				next();
+			})
+			// }}}
+			// Clean up the temp directory {{{
+			.then(function(next) {
+				if (!settings.tempClean) return next();
+				rimraf(this.tempDir, next);
 			})
 			// }}}
 			.end(callback);

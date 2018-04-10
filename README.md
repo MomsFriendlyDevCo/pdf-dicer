@@ -78,6 +78,7 @@ The following settings are supported:
 | `quagga.locate`             | Boolean   | `false`                                           | Quagga    | Indicates if Quagga should try to detect the barcode or we should use areas      |
 | `quagga.decoder`            | Object    | `{readers:['code_128_reader'],multiple: false}`   | Quagga    | Options passed to the Quagga decoder                                             |
 | `temp`                      | Object    | See below                                         | All       | Options passed to Temp when generating a temporary directory                     |
+| `tempClean`                 | Boolean   | `true`                                            | All       | Automatically erase the temporary directory when done                            |
 | `temp.prefix`               | String    | `pdfdicer-`                                       | All       | The prefix used when generating a temporary directory                            |
 | `threads`                   | Object    | See below                                         | All       | Options used for async threading                                                 |
 | `threads.pages`             | Number    | `1`                                               | All       | The number of threads allowed to run simultaneously when processing pages        |
