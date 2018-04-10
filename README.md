@@ -36,8 +36,8 @@ var pdfDicer = require('pdf-dicer');
 var dicer = new pdfDicer();
 
 dicer
-	.on('split', (data, stream) => {
-	  stream.pipe(fs.createWriteStream('output.pdf'));
+	.on('split', (data, buffer) => {
+	  fs.writeFile('output.pdf', buffer);
 	})
 	.split('input.pdf', function(err, output) {
 		if (err) console.log(`Something went wrong: ${err}`);
@@ -113,7 +113,7 @@ The following events are fired by this module:
 
 | Event             | Arguments            | Description                                                 |
 |-------------------|----------------------|-------------------------------------------------------------|
-| `stage`           | `(stageName)`        | Fired for each stage of operation. ENUM: 'init', 'readPDF', 'readPages', 'extracted', 'filtering', 'loadRange', 'splitPDFWithScissors', 'splitPDFWithScissors' stage is thrown as many times as is needed |
+| `stage`           | `(stageName)`        | Fired for each stage of operation. ENUM: 'init', 'readPDF', 'readPages', 'extracted', 'filtering', 'loadRange', 'preSplit' |
 | `tempDir`         | `(path)`             | Fired when a temp directory has been allocated              |
 | `pageConverted`   | `(page, pageOffset)` | Fired for each page that is converted                       |
 | `pagesConverted`  | `(pages)`            | Fired when all pages have been converted                    |
@@ -122,4 +122,4 @@ The following events are fired by this module:
 | `barcodePassed`   | `(page)`             | Fired if a page passes filtering and is not filtered out    |
 | `pageAnalyzed`    | `(page)`             | Fired after a page has been analyzed                        |
 | `pagesAnalyzed`   | `(pages)`            | Fired when all pages have been analyzed                     |
-| `split`           | `(range, stream)`    | Fired when a range has been detected and a stream is ready  |
+| `split`           | `(range, buffer)`    | Fired when a range has been detected and a buffer is ready  |

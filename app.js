@@ -92,15 +92,14 @@ async()
 	})
 	// }}}
 	// --write {{{
-	.set('writeStreams', [])
+	.set('writeBuffers', async())
 	.then(function(next) {
 		if (!program.write) return next();
 
-		this.dicer.on('split', (range, stream) => {
-			var outputStream = fs.createWriteStream(fspath.join(program.dir || process.cwd(), `OUT-${range.from}-${range.to}.pdf`));
-
-			stream.pipe(outputStream);
-			this.writeStreams.push(outputStream);
+		this.dicer.on('split', (range, buffer) => {
+			this.writeBuffers.defer(next => {
+				fs.writeFile(fspath.join(program.dir || process.cwd(), `OUT-${range.from}-${range.to}.pdf`), buffer, next);
+			});
 		});
 
 		next();
@@ -112,9 +111,11 @@ async()
 		this.dicer.split(path, next);
 	})
 	// }}}
-	// Wait for pipes to flush if we are saving documents {{{
-	.forEach('writeStreams', function(next, stream) {
-		stream.on('close', ()=> next());
+	// Wait for buffers to flush if we are saving documents {{{
+	.then(function(next) {
+		this.writeBuffers
+			.await()
+			.end(next);
 	})
 	// }}}
 	// End {{{

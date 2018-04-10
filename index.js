@@ -6,7 +6,8 @@ var events = require('events');
 var fs = require('fs');
 var temp = require('temp');
 var pdfImage = require('pdf-image').PDFImage;
-var scissors = require('scissors');
+var rimraf = require('rimraf');
+var pdftk = require('node-pdftk');
 var util = require('util');
 
 /**
@@ -109,7 +110,7 @@ function PDFDicer(options) {
 	 * @param {function} callback Callback function to fire on completion or error
 	 * @return {PDFDicer} This chainable object
 	 *
-	 * @emits stage Fired at each stage of the process. ENUM: 'init', 'readPDF', 'readPages', 'extracted', 'filtering', 'loadRange', 'splitPDFWithScissors'
+	 * @emits stage Fired at each stage of the process. ENUM: 'init', 'readPDF', 'readPages', 'extracted', 'filtering', 'loadRange', 'preSplit'
 	 * @emits tempDir The temp dir used for storage
 	 * @emits pageConverted  Fired with each page and pageOffset extracted as they are extracted
 	 * @emits pagesConverted Fired with an array of all extracted page collection
@@ -333,7 +334,7 @@ function PDFDicer(options) {
 			// }}}
 			// Update stage {{{
 			.then(function(next) {
-				dicer.emit('stage', 'splitPDFWithScissors');
+				dicer.emit('stage', 'preSplit');
 				next();
 			})
 			// }}}
@@ -341,9 +342,15 @@ function PDFDicer(options) {
 			.forEach('range', function(nextRange, range, rangeIndex) {
 				range.to = range.from + range.pages - 1;
 
-				dicer.emit('split', range, scissors(input).range(range.from, range.to).pdfStream());
-
-				nextRange();
+				pdftk
+					.input(input)
+					.cat(`${range.from}-${range.to}`)
+					.output('./test.pdf')
+					.then(buffer => {
+						dicer.emit('split', range, buffer);
+						nextRange();
+					})
+					.catch(nextRange)
 			})
 			// }}}
 			// Emits the end signal for the functionality {{{
