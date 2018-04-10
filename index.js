@@ -108,7 +108,7 @@ function PDFDicer(options) {
 	 * @param {function} callback Callback function to fire on completion or error
 	 * @return {PDFDicer} This chainable object
 	 *
-	 * @emits stage Fired at each stage of the process. ENUM: 'init', 'readPDF', 'readPages', 'extracted', 'filtering', 'loadRange', 'splitPDFWithScissors', 'splitPDFWithScissors' stage is thrown as many times as is needed.
+	 * @emits stage Fired at each stage of the process. ENUM: 'init', 'readPDF', 'readPages', 'extracted', 'filtering', 'loadRange', 'splitPDFWithScissors'
 	 * @emits tempDir The temp dir used for storage
 	 * @emits pageConverted  Fired with each page and pageOffset extracted as they are extracted
 	 * @emits pagesConverted Fired with an array of all extracted page collection
@@ -330,9 +330,14 @@ function PDFDicer(options) {
 				next();
 			})
 			// }}}
+			// Update stage {{{
+			.then(function(next) {
+				dicer.emit('stage', 'splitPDFWithScissors');
+				next();
+			})
+			// }}}
 			// Gives the resultant split pdfs {{{
 			.forEach('range', function(nextRange, range, rangeIndex) {
-				dicer.emit('stage', 'splitPDFWithScissors');
 				range.to = range.from + range.pages - 1;
 
 				dicer.emit('split', range, scissors(input).range(range.from, range.to).pdfStream());
