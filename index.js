@@ -129,7 +129,7 @@ function PDFDicer(options) {
 			callback = options;
 			options = {};
 		} else if (!_.isFunction(callback)) {
-			throw new Error('Callback required as the final parametert of pdfDicer.convert()');
+			throw new Error('Callback required as the final parameter of pdfDicer.convert()');
 		}
 		// }}}
 
