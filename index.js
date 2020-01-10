@@ -345,7 +345,6 @@ function PDFDicer(options) {
 				pdftk
 					.input(input)
 					.cat(`${range.from}-${range.to}`)
-					.output('./test.pdf')
 					.then(buffer => {
 						dicer.emit('split', range, buffer);
 						nextRange();
