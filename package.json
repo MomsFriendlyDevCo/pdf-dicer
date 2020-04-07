@@ -1,6 +1,6 @@
 {
   "name": "pdf-dicer",
-  "version": "0.4.2",
+  "version": "0.4.4",
   "description": "Split PDF files into many based on barcode separators",
   "main": "index.js",
   "engines": {
@@ -35,7 +35,7 @@
     "bluebird": "^3.5.1",
     "bwip-js": "^1.6.3",
     "debug": "^3.1.0",
-    "http-server": "^0.11.1",
+    "http-server": "^0.12.1",
     "openurl": "^1.1.1",
     "pdf-merge": "^1.0.2",
     "pdfkit": "^0.8.3",
