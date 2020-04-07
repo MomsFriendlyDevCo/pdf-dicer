@@ -63,7 +63,7 @@ The following settings are supported:
 
 | Setting                     | Type      | Default                                           | Profile   | Description                                                                      |
 |-----------------------------|-----------|---------------------------------------------------|-----------|----------------------------------------------------------------------------------|
-| `areas`                     | Array     | `{top:'3%',right:'2%',left:'2%',bottom:87}`       | Quagga    | The areas of the input pages that Quagga should scan                             |
+| `areas`                     | Array     | `{top:'0%',right:'0%',left:'0%',bottom:'0%'}`       | Quagga    | The areas of the input pages that Quagga should scan                             |
 | `imageFormat`               | String    | `png` (Quagga), `tif` (Bardecode)                 | All       | The intermediate image format to use before processing the barcode               |
 | `magickOptions`             | Object    | Various (Quagga), `{}` (Bardecode)                | All       | Additional options to pass to ImageMagick when converting the PDF to images      |
 | `bardecode`                 | Object    | See below                                         | Bardecode | Options specific to Bardecode                                                    |
