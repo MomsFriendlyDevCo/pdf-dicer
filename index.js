@@ -19,8 +19,7 @@ function PDFDicer(options) {
 	dicer.settings = _.defaults(options, {
 		profile: 'quagga', // Default profile to use
 		areas: [
-			// Top-center area
-			{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+			{ top: "0%", right: "0%", left: "0%", bottom: "0%" }
 		],
 		imageFormat: 'png',
 		magickOptions: { // Options passed to ImageMagick when converting pdf -> page output format
@@ -210,17 +209,23 @@ function PDFDicer(options) {
 			.forEach('pages', function(nextPage, page, pageOffset) {
 				page.number = parseInt(pageOffset) + 1;
 				page.barcode = false;
-				dicer.emit('pageAnalyze', page)
+				dicer.emit('pageAnalyze', page);
 				if (settings.driver == 'quagga') {
 					async()
 						.limit(settings.threads.areas)
 						.forEach(settings.areas, function(nextArea, area) {
-							barcodeReader.decodeSingle(Object.assign({}, settings.quagga, {
-								src: page.path,
-								inputStream: {
+							var hasAreas = Object.values(area).filter(a => a === '0%').length !== 4;
+							var options = {
+								src: page.path
+							};
+							options.locate = hasAreas;
+							if (hasAreas) {
+								options.inputStream = {
 									area: area,
-								},
-							}), function(res) {
+								};
+							}
+
+							barcodeReader.decodeSingle(Object.assign({}, settings.quagga, options), function(res) {
 								if (!page.barcode && res && res.codeResult) page.barcode = res.codeResult.code;
 								nextArea();
 							});
@@ -345,11 +350,12 @@ function PDFDicer(options) {
 				pdftk
 					.input(input)
 					.cat(`${range.from}-${range.to}`)
+					.output()
 					.then(buffer => {
 						dicer.emit('split', range, buffer);
 						nextRange();
 					})
-					.catch(nextRange)
+					.catch(nextRange);
 			})
 			// }}}
 			// Emits the end signal for the functionality {{{

@@ -2,9 +2,19 @@ var test = require('tape');
 
 var debug = require('debug')('test');
 var _ = require('lodash');
-var fs = require('fs-extra')
+var fs = require('fs-extra');
 var pdfDicer = require('..');
 var outputPath = '';
+
+var profile = 'quagga'; // bardecode/quagga
+var isBardecode = (profile === 'bardecode')
+var ids = [
+	'0000FC#BPyR+L',
+	'0000MobL3y!<h',
+	'0000MC#6PyadL'
+];
+if (isBardecode)
+	ids = ids.map(i => i.slice(0, -3) + '???');
 
 // Define test timeout
 var testTimeout = 60 * 1000;
@@ -54,12 +64,11 @@ test(testOptions[0].name, { timeout: testOptions[0].timeout, skip: testOptions[0
 		}
 	};
 
-	var dicer = new pdfDicer();
+	var dicer = new pdfDicer({profile: profile});
 	var stages = [];
 	dicer
 		.areas([
-			// Top-center area
-			{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+			{ top: "0%", right: "0%", left: "0%", bottom: "0%" }
 		])
 		.on('stage', stage => {
 			debug('stage:', stage);
@@ -67,11 +76,11 @@ test(testOptions[0].name, { timeout: testOptions[0].timeout, skip: testOptions[0
 		})
 		.on('rangeExtracted', (range) => {
 			assert.deepEqual(range, {
-				'http://rkj.io/0000FC#BPyR+L': {
+				['http://rkj.io/' + ids[0]]: {
 					barcode: {
-						id: '0000FC#BPyR+L',
-						start: 'http://rkj.io/0000FC#BPyR+L',
-						end: 'http://rkj.io/0000FC#BPyR+L'
+						id: ids[0],
+						start: 'http://rkj.io/' + ids[0],
+						end: 'http://rkj.io/' + ids[0]
 					},
 					pages: 2,
 					from: 1
@@ -79,12 +88,13 @@ test(testOptions[0].name, { timeout: testOptions[0].timeout, skip: testOptions[0
 			});
 		})
 		.on('split', (data, stream) => {
-			stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
+			//stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
+			fs.writeFileSync(`${outputPath}/example-${data.barcode.id}.pdf`, stream);
 		})
 		.on('splitted', () => {
 			var fileCount = 0;
 			var fileNames = [
-				'example-0000FC#BPyR+L.pdf'
+				'example-' + ids[0] + '.pdf'
 			];
 			fs.readdirSync(outputPath).forEach(file => {
 				if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
@@ -111,12 +121,11 @@ test(testOptions[1].name, { timeout: testOptions[1].timeout, skip: testOptions[1
 		}
 	};
 
-	var dicer = new pdfDicer();
+	var dicer = new pdfDicer({profile: profile});
 	var stages = [];
 	dicer
 		.areas([
-			// Top-center area
-			{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+			{ top: "0%", right: "0%", left: "0%", bottom: "0%" }
 		])
 		.on('stage', stage => {
 			debug('stage:', stage);
@@ -124,11 +133,11 @@ test(testOptions[1].name, { timeout: testOptions[1].timeout, skip: testOptions[1
 		})
 		.on('rangeExtracted', (range) => {
 			assert.deepEqual(range, {
-				'http://rkj.io/0000MobL3y!<h': {
+				['http://rkj.io/' + ids[1]]: {
 					barcode: {
-						id: '0000MobL3y!<h',
-						start: 'http://rkj.io/0000MobL3y!<h',
-						end: 'http://rkj.io/0000MobL3y!<h'
+						id: ids[1],
+						start: 'http://rkj.io/' + ids[1],
+						end: 'http://rkj.io/' + ids[1]
 					},
 					pages: 2,
 					from: 1
@@ -136,12 +145,13 @@ test(testOptions[1].name, { timeout: testOptions[1].timeout, skip: testOptions[1
 			});
 		})
 		.on('split', (data, stream) => {
-			stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
+			//stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
+			fs.writeFileSync(`${outputPath}/example-${data.barcode.id}.pdf`, stream);
 		})
 		.on('splitted', () => {
 			var fileCount = 0;
 			var fileNames = [
-				'example-0000MobL3y!<h.pdf'
+				'example-' + ids[1] + '.pdf'
 			];
 			fs.readdirSync(outputPath).forEach(file => {
 				if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
@@ -168,12 +178,11 @@ test(testOptions[2].name, { timeout: testOptions[2].timeout, skip: testOptions[2
 		}
 	};
 
-	var dicer = new pdfDicer();
+	var dicer = new pdfDicer({profile: profile});
 	var stages = [];
 	dicer
 		.areas([
-			// Top-center area
-			{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+			{ top: "0%", right: "0%", left: "0%", bottom: "0%" }
 		])
 		.on('stage', stage => {
 			debug('stage:', stage);
@@ -181,11 +190,11 @@ test(testOptions[2].name, { timeout: testOptions[2].timeout, skip: testOptions[2
 		})
 		.on('rangeExtracted', (range) => {
 			assert.deepEqual(range, {
-				'http://rkj.io/0000MC#6PyadL': {
+				['http://rkj.io/' + ids[2]]: {
 					barcode: {
-						id: '0000MC#6PyadL',
-						start: 'http://rkj.io/0000MC#6PyadL',
-						end: 'http://rkj.io/0000MC#6PyadL'
+						id: ids[2],
+						start: 'http://rkj.io/' + ids[2],
+						end: 'http://rkj.io/' + ids[2]
 					},
 					pages: 2,
 					from: 1
@@ -193,12 +202,13 @@ test(testOptions[2].name, { timeout: testOptions[2].timeout, skip: testOptions[2
 			});
 		})
 		.on('split', (data, stream) => {
-			stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
+			//stream.pipe(fs.createWriteStream(`${outputPath}/example-${data.barcode.id}.pdf`));
+			fs.writeFileSync(`${outputPath}/example-${data.barcode.id}.pdf`, stream);
 		})
 		.on('splitted', () => {
 			var fileCount = 0;
 			var fileNames = [
-				'example-0000MC#6PyadL.pdf'
+				'example-' + ids[2] + '.pdf'
 			];
 			fs.readdirSync(outputPath).forEach(file => {
 				if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
@@ -225,13 +235,12 @@ test(testOptions[3].name, { timeout: testOptions[3].timeout, skip: testOptions[3
 		}
 	};
 
-	var dicer = new pdfDicer();
+	var dicer = new pdfDicer({profile: profile});
 	var stages = [];
 	var counter = 0;
 	dicer
 		.areas([
-			// Top-center area
-			{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+			{ top: "0%", right: "0%", left: "0%", bottom: "0%" }
 		])
 		.on('stage', stage => {
 			debug('stage:', stage);
@@ -239,29 +248,29 @@ test(testOptions[3].name, { timeout: testOptions[3].timeout, skip: testOptions[3
 		})
 		.on('rangeExtracted', (range) => {
 			assert.deepEqual(range,{
-				'http://rkj.io/0000FC#BPyR+L': {
+				['http://rkj.io/' + ids[0]]: {
 					barcode: {
-						id: '0000FC#BPyR+L',
-						start: 'http://rkj.io/0000FC#BPyR+L',
-						end: 'http://rkj.io/0000FC#BPyR+L'
+						id: ids[0],
+						start: 'http://rkj.io/' + ids[0],
+						end: 'http://rkj.io/' + ids[0]
 					},
 					pages: 2,
 					from: 1
 				},
-				'http://rkj.io/0000MobL3y!<h': {
+				['http://rkj.io/' + ids[1]]: {
 					barcode: {
-						id: '0000MobL3y!<h',
-						start: 'http://rkj.io/0000MobL3y!<h',
-						end: 'http://rkj.io/0000MobL3y!<h'
+						id: ids[1],
+						start: 'http://rkj.io/' + ids[1],
+						end: 'http://rkj.io/' + ids[1]
 					},
 					pages: 2,
 					from: 3
 				},
-				'http://rkj.io/0000MC#6PyadL': {
+				['http://rkj.io/' + ids[2]]: {
 					barcode: {
-						id: '0000MC#6PyadL',
-						start: 'http://rkj.io/0000MC#6PyadL',
-						end: 'http://rkj.io/0000MC#6PyadL'
+						id: ids[2],
+						start: 'http://rkj.io/' + ids[2],
+						end: 'http://rkj.io/' + ids[2]
 					},
 					pages: 2,
 					from: 5
@@ -270,14 +279,15 @@ test(testOptions[3].name, { timeout: testOptions[3].timeout, skip: testOptions[3
 		})
 		.on('split', (data, stream) => {
 			counter++;
-			stream.pipe(fs.createWriteStream(`${outputPath}/example-${counter}-${data.barcode.id}.pdf`));
+			//stream.pipe(fs.createWriteStream(`${outputPath}/example-${counter}-${data.barcode.id}.pdf`));
+			fs.writeFileSync(`${outputPath}/example-${counter}-${data.barcode.id}.pdf`, stream);
 		})
 		.on('splitted', () => {
 			var fileCount = 0;
 			var fileNames = [
-				'example-1-0000FC#BPyR+L.pdf',
-				'example-2-0000MobL3y!<h.pdf',
-				'example-3-0000MC#6PyadL.pdf'
+				'example-1-' + ids[0] + '.pdf',
+				'example-2-' + ids[1] +'.pdf',
+				'example-3-' + ids[2] + '.pdf'
 			];
 			fs.readdirSync(outputPath).forEach(file => {
 				if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
@@ -304,19 +314,22 @@ test(testOptions[4].name, { timeout: testOptions[4].timeout, skip: testOptions[4
 		}
 	};
 
-	var dicer = new pdfDicer();
+	var id = 'ok6b8R';
+	if (isBardecode)
+		id = id.slice(0, -3);
+	var dicer = new pdfDicer({profile: profile});
 	var stages = [];
 	var counter = 0;
 	dicer
 		.areas([
-			// Top-center area
-			{ top: "3%", right: "2%", left: "2%", bottom: "87" }
+			{ top: "0%", right: "0%", left: "0%", bottom: "0%" }
 		])
 		.on('stage', stage => {
 			debug('stage:', stage);
 			stages.push(stage);
 		})
 		.on('rangeExtracted', (range) => {
+			console.log('range', range);
 			assert.deepEqual(range, {
 				'': {
 					barcode: {
@@ -326,11 +339,11 @@ test(testOptions[4].name, { timeout: testOptions[4].timeout, skip: testOptions[4
 					pages: 2,
 					from: 1
 				},
-				'http://rkj.io/ok6b8R': {
+				['http://rkj.io/' + id]: {
 					barcode: {
-						id: 'ok6b8R',
-						start: 'http://rkj.io/ok6b8R',
-						end: 'http://rkj.io/ok6b8R'
+						id: id,
+						start: 'http://rkj.io/' + id,
+						end: 'http://rkj.io/' + id
 					},
 					pages: 2,
 					from: 3
@@ -339,13 +352,14 @@ test(testOptions[4].name, { timeout: testOptions[4].timeout, skip: testOptions[4
 		})
 		.on('split', (data, stream) => {
 			counter++;
-			stream.pipe(fs.createWriteStream(`${outputPath}/example-${counter}-${data.barcode.id}.pdf`));
+			//stream.pipe(fs.createWriteStream(`${outputPath}/example-${counter}-${data.barcode.id}.pdf`));
+			fs.writeFileSync(`${outputPath}/example-${counter}-${data.barcode.id}.pdf`, stream);
 		})
 		.on('splitted', () => {
 			var fileCount = 0;
 			var fileNames = [
 				'example-1-false.pdf',
-				'example-2-ok6b8R.pdf'
+				'example-2-' + id + '.pdf'
 			];
 			fs.readdirSync(outputPath).forEach(file => {
 				if (!fs.lstatSync(outputPath + '/' + file).isDirectory() && fileNames.includes(file)) {
