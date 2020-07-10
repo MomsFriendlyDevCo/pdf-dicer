@@ -43,7 +43,31 @@ function PDFDicer(options) {
 			decoder: {
 				readers: ['code_128_reader'],
 				multiple: false,
+				debug: {
+					drawBoundingBox: true,
+					showFrequency: true,
+					drawScanline: true,
+					showPattern: true
+				}
 			},
+			locator: {
+				debug: {
+					showCanvas: true,
+					showPatches: true,
+					showFoundPatches: true,
+					showSkeleton: true,
+					showLabels: true,
+					showPatchLabels: true,
+					showRemainingPatchLabels: true,
+					boxFromPatches: {
+						showTransformed: true,
+						showTransformedBox: true,
+						showBB: true
+					}
+				},
+				halfSample: true,
+				patchSize: "medium" // x-small, small, medium, large, x-large
+			}
 		},
 		filter: page => true,
 		temp: {
