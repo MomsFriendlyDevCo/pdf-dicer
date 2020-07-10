@@ -35,6 +35,7 @@ function PDFDicer(options) {
 			serial: '',
 		},
 		quagga: { // Options passed to Quagga
+			debug: false,
 			numOfWorkers: 0, // Always 0 in Node backend
 			locate: false, // We have to indicate the location of the barcode
 			inputStream: {
@@ -44,25 +45,25 @@ function PDFDicer(options) {
 				readers: ['code_128_reader'],
 				multiple: false,
 				debug: {
-					drawBoundingBox: true,
-					showFrequency: true,
-					drawScanline: true,
-					showPattern: true
+					drawBoundingBox: false,
+					showFrequency: false,
+					drawScanline: false,
+					showPattern: false
 				}
 			},
 			locator: {
 				debug: {
-					showCanvas: true,
-					showPatches: true,
-					showFoundPatches: true,
-					showSkeleton: true,
-					showLabels: true,
-					showPatchLabels: true,
-					showRemainingPatchLabels: true,
+					showCanvas: false,
+					showPatches: false,
+					showFoundPatches: false,
+					showSkeleton: false,
+					showLabels: false,
+					showPatchLabels: false,
+					showRemainingPatchLabels: false,
 					boxFromPatches: {
-						showTransformed: true,
-						showTransformedBox: true,
-						showBB: true
+						showTransformed: false,
+						showTransformedBox: false,
+						showBB: false
 					}
 				},
 				halfSample: true,
