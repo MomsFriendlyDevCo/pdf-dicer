@@ -21,6 +21,8 @@ This module requires ImageMagick, GhostScript and Poppler.
 You can install them as follows:
 
 * **Ubuntu Linux** - `sudo apt-get install imagemagick ghostscript poppler-utils pdftk`
+  * NOTE: Some versions of Ubuntu do not stock PDFTK, use `sudo add-apt-repository -y ppa:mike-quisido/pdftk && sudo apt-get update && sudo apt -y install pdftk-java`
+  * PDFTK also requires [permissions to be setup](https://stackoverflow.com/a/52661288/1295040) before it can process local files
 * **OSX (Yosemite)** - `brew install imagemagick ghostscript poppler`
   * Install [PDFTK](https://www.pdflabs.com/tools/pdftk-server/#download) from website.
 
@@ -40,6 +42,8 @@ dicer
 		if (err) console.log(`Something went wrong: ${err}`);
 	});
 ```
+
+There is an also an example of reading a directory of PDF's and saving based on extracted barcodes [here](./examples/export.js)
 
 
 API
